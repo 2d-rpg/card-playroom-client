@@ -1,6 +1,6 @@
 # card-game-simulator
 
-![NodeJS](https://github.com/2d-rpg/card-game-simulator/workflows/NodeJS/badge.svg)  
+[![NodeJS](https://github.com/2d-rpg/card-game-simulator/workflows/NodeJS/badge.svg)](https://github.com/2d-rpg/card-game-simulator/actions?query=workflow%3ANodeJS)  
 カードゲームシミュレーター
 
 # How to get started
