@@ -5,6 +5,8 @@ RUN apt update \
     apt-utils \
     git \
     ca-certificates \
+    procps \
+    osascript \
     && npm install expo-cli --global \
     && apt autoremove -y \
     && apt clean -y \

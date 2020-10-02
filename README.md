@@ -2,7 +2,7 @@
 カードゲームシミュレーター
 
 # How to get started
-VSCodeの[Remote Container 拡張](https://code.visualstudio.com/docs/remote/containers)の使用を推奨します．
+VSCodeの[Remote Container 拡張](https://code.visualstudio.com/docs/remote/containers)の使用を推奨します．  
 このプロジェクトをクローンし，VSCodeの[Remote Container 拡張](https://code.visualstudio.com/docs/remote/containers)を使用して開く．
 
 ```
