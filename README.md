@@ -1,9 +1,10 @@
-# card-game-simulator
+# Card Game Simulator
 
-[![NodeJS](https://github.com/2d-rpg/card-game-simulator/workflows/NodeJS/badge.svg)](https://github.com/2d-rpg/card-game-simulator/actions?query=workflow%3ANodeJS)  
-カードゲームシミュレーター
+![ReactNative](https://img.shields.io/static/v1?label=React%20Native&message=v0.63.2&color=61DAFB&logo=react) ![TypeScript](https://img.shields.io/static/v1?label=TypeScript&message=v3.9.5&color=007ACC&logo=typeScript) ![Docker](https://img.shields.io/static/v1?label=Docker&message=v19.3.13&color=2496ED&logo=docker) ![VSCode](https://img.shields.io/static/v1?label=Visual%20Studio%20Code&message=v1.49.3&color=007ACC&logo=visual-studio-code)
 
-# How to get started
+[![NodeJS](https://github.com/2d-rpg/card-game-simulator/workflows/NodeJS/badge.svg)](https://github.com/2d-rpg/card-game-simulator/actions?query=workflow%3ANodeJS) [![CodeQL](https://github.com/2d-rpg/card-game-simulator/workflows/CodeQL/badge.svg)](https://github.com/2d-rpg/card-game-simulator/actions?query=workflow%3ACodeQL)
+
+## How to get started
 
 VSCode の[Remote Container 拡張](https://code.visualstudio.com/docs/remote/containers)の使用を推奨します．  
 このプロジェクトをクローンし，VSCode の[Remote Container 拡張](https://code.visualstudio.com/docs/remote/containers)を使用して開く．
