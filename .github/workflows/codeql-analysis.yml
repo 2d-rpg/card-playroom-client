@@ -9,9 +9,10 @@ on:
   #   branches: [main, develop]
   pull_request:
     # The branches below must be a subset of the branches above
-    branches: [main, develop]
-  schedule:
-    - cron: "0 4 * * 4"
+    # branches: [main, develop]
+    types: [opend, syncronize]
+  # schedule:
+  # - cron: "0 4 * * 4" # every Thursday 4am
 
 jobs:
   analyze:
