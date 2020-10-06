@@ -10,7 +10,7 @@ on:
   pull_request:
     # The branches below must be a subset of the branches above
     # branches: [main, develop]
-    types: [opend, syncronize]
+    types: [opend, synchronize]
   # schedule:
   # - cron: "0 4 * * 4" # every Thursday 4am
 
