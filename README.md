@@ -9,7 +9,7 @@
 [![NodeJS](https://github.com/2d-rpg/card-game-simulator/workflows/NodeJS/badge.svg)](https://github.com/2d-rpg/card-game-simulator/actions?query=workflow%3ANodeJS)
 [![CodeQL](https://github.com/2d-rpg/card-game-simulator/workflows/CodeQL/badge.svg)](https://github.com/2d-rpg/card-game-simulator/actions?query=workflow%3ACodeQL)
 
-## <img src="https://user-images.githubusercontent.com/42469701/95276781-1b815500-0887-11eb-84e5-f1dc89df3efb.png" width="15px"> How to get started
+## <img src="https://user-images.githubusercontent.com/42469701/95276781-1b815500-0887-11eb-84e5-f1dc89df3efb.png" width="20px"> How to get started
 
 VSCode の[Remote Container 拡張](https://code.visualstudio.com/docs/remote/containers)の使用を推奨します．  
 このプロジェクトをクローンし，VSCode の[Remote Container 拡張](https://code.visualstudio.com/docs/remote/containers)を使用して開く．
