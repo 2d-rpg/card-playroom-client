@@ -1,0 +1,33 @@
+name: NodeJS
+
+on: pull_request
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: "12.x"
+      - name: Cache node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: ~/.cache/yarn
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+      - name: Lint
+        run: npm run lint
+
+      - name: TypeScript Error Reporter
+        # You may pin to the exact commit or the version.
+        # uses: andoshin11/typescript-error-reporter-action@efcdda22e14816a9fb946e88593f14183488184d
+        uses: andoshin11/typescript-error-reporter-action@v1.0.2
