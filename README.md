@@ -3,7 +3,7 @@
 ![ReactNative](https://img.shields.io/static/v1?label=React%20Native&message=v0.63.2&color=61DAFB&logo=react)
 ![TypeScript](https://img.shields.io/static/v1?label=TypeScript&message=v3.9.5&color=007ACC&logo=typeScript)
 ![Docker](https://img.shields.io/static/v1?label=Docker&message=v19.3.13&color=2496ED&logo=docker)
-![VSCode](https://img.shields.io/static/v1?label=Visual%20Studio%20Code&message=v1.49.3&color=007ACC&logo=visual-studio-code)
+![Node.js](https://img.shields.io/static/v1?label=Node.js&message=v12.18.4&color=339933&logo=node.js)
 
 [![Release](https://img.shields.io/github/v/release/2d-rpg/card-game-simulator?include_prereleases)](https://github.com/2d-rpg/card-game-simulator/releases)
 [![NodeJS](https://github.com/2d-rpg/card-game-simulator/workflows/NodeJS/badge.svg)](https://github.com/2d-rpg/card-game-simulator/actions?query=workflow%3ANodeJS)
