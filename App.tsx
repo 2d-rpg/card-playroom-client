@@ -15,4 +15,9 @@ export default function App(): ReactElement {
   );
 }
 
+export type RootStackParamList = {
+  Home: undefined;
+  Room: undefined;
+};
+
 const Stack = createStackNavigator();

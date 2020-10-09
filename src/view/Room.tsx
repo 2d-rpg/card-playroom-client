@@ -1,9 +1,13 @@
-import * as React from "react";
+import React, { ReactElement } from "react";
 import { StyleSheet, View, Text, Button } from "react-native";
-import { NavigationContainer } from "@react-navigation/native";
-import { createStackNavigator } from "@react-navigation/stack";
+import { StackNavigationProp } from "@react-navigation/stack";
+import { RootStackParamList } from "../../App";
 
-export default function HomeScreen({ navigation }) {
+export default function HomeScreen({
+  navigation,
+}: {
+  navigation: RoomScreenNavigationProp;
+}): ReactElement {
   return (
     <View style={styles.container}>
       <Text>Room Screen</Text>
@@ -11,6 +15,8 @@ export default function HomeScreen({ navigation }) {
     </View>
   );
 }
+
+type RoomScreenNavigationProp = StackNavigationProp<RootStackParamList, "Room">;
 
 const styles = StyleSheet.create({
   container: {

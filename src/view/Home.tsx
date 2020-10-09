@@ -1,9 +1,14 @@
 import { StatusBar } from "expo-status-bar";
-import * as React from "react";
+import React, { ReactElement } from "react";
 import { StyleSheet, View, Text, Button } from "react-native";
 import { StackNavigationProp } from "@react-navigation/stack";
+import { RootStackParamList } from "../../App";
 
-export default function HomeScreen({ navigation }): React.ReactElement {
+export default function HomeScreen({
+  navigation,
+}: {
+  navigation: HomeScreenNavigationProp;
+}): ReactElement {
   return (
     <View style={styles.container}>
       <Text>Home Screen</Text>
@@ -12,6 +17,8 @@ export default function HomeScreen({ navigation }): React.ReactElement {
     </View>
   );
 }
+
+type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, "Home">;
 
 const styles = StyleSheet.create({
   container: {
