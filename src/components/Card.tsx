@@ -1,15 +1,18 @@
-import React, { ReactElement } from "react";
-import { StyleSheet, View } from "react-native";
+import React, { ReactElement, useState } from "react";
+import { Image, ImageProps } from "react-native";
 
-export default function Card(): ReactElement {
-  return <View style={styles.container}></View>;
+export default function Card(props: {
+  faceUrl: ImageProps;
+  backUrl: ImageProps;
+}): ReactElement {
+  const [isFace, setIsFace] = useState(true);
+  return (
+    <Image
+      style={{
+        width: 136,
+        height: 200,
+      }}
+      source={props.faceUrl}
+    />
+  );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});

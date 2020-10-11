@@ -3,6 +3,7 @@ import React, { ReactElement } from "react";
 import { StyleSheet, View, Text, Button } from "react-native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../../../App";
+import Card from "../../components/Card";
 
 export default function EditDeckScreen({
   navigation,
@@ -15,6 +16,10 @@ export default function EditDeckScreen({
       <Button
         title="ホーム画面に戻る"
         onPress={() => navigation.navigate("Home")}
+      />
+      <Card
+        faceUrl={require("../../../assets/default/face/card_joker.png")}
+        backUrl={require("../../../assets/default/back/card_back.png")}
       />
       <StatusBar style="auto" />
     </View>
