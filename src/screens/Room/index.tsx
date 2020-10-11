@@ -1,9 +1,9 @@
 import React, { ReactElement } from "react";
 import { StyleSheet, View, Text, Button } from "react-native";
 import { StackNavigationProp } from "@react-navigation/stack";
-import { RootStackParamList } from "../../App";
+import { RootStackParamList } from "../../../App";
 
-export default function HomeScreen({
+export default function RoomScreen({
   navigation,
 }: {
   navigation: RoomScreenNavigationProp;
@@ -11,7 +11,10 @@ export default function HomeScreen({
   return (
     <View style={styles.container}>
       <Text>Room Screen</Text>
-      <Button title="ホーム画面へ戻る" onPress={() => navigation.goBack()} />
+      <Button
+        title="ホーム画面へ戻る"
+        onPress={() => navigation.navigate("Home")}
+      />
     </View>
   );
 }

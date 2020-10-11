@@ -2,23 +2,29 @@ import { StatusBar } from "expo-status-bar";
 import React, { ReactElement } from "react";
 import { StyleSheet, View, Text, Button } from "react-native";
 import { StackNavigationProp } from "@react-navigation/stack";
-import { RootStackParamList } from "../../App";
+import { RootStackParamList } from "../../../App";
 
-export default function HomeScreen({
+export default function EditDeckScreen({
   navigation,
 }: {
-  navigation: HomeScreenNavigationProp;
+  navigation: EditDeckScreenNavigationProp;
 }): ReactElement {
   return (
     <View style={styles.container}>
-      <Text>Home Screen</Text>
-      <Button title="ルーム作成" onPress={() => navigation.navigate("Room")} />
+      <Text>Edit Deck Screen</Text>
+      <Button
+        title="ホーム画面に戻る"
+        onPress={() => navigation.navigate("Home")}
+      />
       <StatusBar style="auto" />
     </View>
   );
 }
 
-type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, "Home">;
+type EditDeckScreenNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  "EditDeck"
+>;
 
 const styles = StyleSheet.create({
   container: {
