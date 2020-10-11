@@ -11,7 +11,13 @@ import PreferencesScreen from "./src/screens/preferences/index";
 export default function App(): ReactElement {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Home">
+      <Stack.Navigator
+        initialRouteName="Home"
+        screenOptions={{
+          headerStyle: { backgroundColor: "#706fd3" },
+          headerTintColor: "white",
+        }}
+      >
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="Room" component={RoomScreen} />
         <Stack.Screen name="RoomList" component={RoomListScreen} />
