@@ -1,7 +1,6 @@
-import React, { ReactElement, useEffect, useState } from "react";
+import React, { ReactElement } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
-import { Dimensions, ScaledSize } from "react-native";
 import HomeScreen from "./src/screens/home/index";
 import RoomScreen from "./src/screens/room/index";
 import RoomListScreen from "./src/screens/room-list/index";
