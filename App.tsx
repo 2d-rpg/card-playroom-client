@@ -2,11 +2,11 @@ import React, { ReactElement, useEffect, useState } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { Dimensions, ScaledSize } from "react-native";
-import HomeScreen from "./src/screens/Home/index";
-import RoomScreen from "./src/screens/Room/index";
-import RoomListScreen from "./src/screens/RoomList/index";
-import EditDeckScreen from "./src/screens/EditDeck/index";
-import PreferencesScreen from "./src/screens/Preferences/index";
+import HomeScreen from "./src/screens/home/index";
+import RoomScreen from "./src/screens/room/index";
+import RoomListScreen from "./src/screens/room-list/index";
+import EditDeckScreen from "./src/screens/edit-deck/index";
+import PreferencesScreen from "./src/screens/preferences/index";
 
 export default function App(): ReactElement {
   return (
