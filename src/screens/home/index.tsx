@@ -1,13 +1,16 @@
 import { StatusBar } from "expo-status-bar";
 import React, { ReactElement } from "react";
-import { StyleSheet, View, Text, Button } from "react-native";
+import { StyleSheet, View, Text } from "react-native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../../../App";
+import { Button } from "react-native-elements";
 
 export default function HomeScreen({
   navigation,
+  socket,
 }: {
   navigation: HomeScreenNavigationProp;
+  socket: SocketIOClient.Socket;
 }): ReactElement {
   return (
     <View style={styles.container}>
@@ -16,7 +19,7 @@ export default function HomeScreen({
         <View style={styles.button}>
           <Button
             title="ルーム作成"
-            onPress={() => navigation.navigate("Room")}
+            onPress={() => navigation.navigate("Room", { socket: socket })}
           />
         </View>
         <View style={styles.button}>
