@@ -8,7 +8,7 @@ import EditDeckScreen from "./src/screens/edit-deck/index";
 import PreferencesScreen from "./src/screens/preferences/index";
 import io from "socket.io-client";
 
-const socket = io("http://localhost:3000", { transports: ["websocket"] });
+// const socket = io("http://localhost:3000", { transports: ["websocket"] });
 
 export default function App(): ReactElement {
   return (
@@ -23,12 +23,12 @@ export default function App(): ReactElement {
         <Stack.Screen
           name="Home"
           component={HomeScreen}
-          initialParams={{ socket: socket }}
+          // initialParams={{ socket: socket }}
         />
         <Stack.Screen
           name="Room"
           component={RoomScreen}
-          initialParams={{ socket: socket }}
+          // initialParams={{ socket: socket }}
         />
         <Stack.Screen name="RoomList" component={RoomListScreen} />
         <Stack.Screen name="EditDeck" component={EditDeckScreen} />
@@ -39,8 +39,8 @@ export default function App(): ReactElement {
 }
 
 export type RootStackParamList = {
-  Home: { socket: SocketIOClient.Socket };
-  Room: { socket: SocketIOClient.Socket };
+  Home: undefined;
+  Room: undefined;
   RoomList: undefined;
   EditDeck: undefined;
   Preferences: undefined;

@@ -1,36 +1,34 @@
 import React, { ReactElement, useEffect, useState } from "react";
-import {
-  StyleSheet,
-  View,
-  Text,
-  Button,
-  FlatList,
-  ActivityIndicator,
-} from "react-native";
+import { StyleSheet, View, FlatList, ActivityIndicator } from "react-native";
+import { SearchBar, ListItem } from "react-native-elements";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../../../App";
-import SearchTextInput from "../../components/SearchTextInput";
 
 export default function RoomListScreen({
   navigation,
-  socket,
 }: {
   navigation: RoomListScreenNavigationProp;
-  socket: SocketIOClient.Socket;
 }): ReactElement {
   const [isLoading, setLoading] = useState(true);
   const [data, setData] = useState([]);
+  const [result, setResult] = useState([]);
+  const [text, setText] = useState("");
 
   useEffect(() => {
-    fetch("http://localhost/rooms")
-      .then((response) => response.json())
-      .then((json) => setData(json.rooms))
+    fetch("http://192.168.0.13:8080/rooms", {
+      mode: "no-cors",
+    })
+      .then((response: Response) => response.json())
+      .then((json) => {
+        setData(json.rooms);
+        setResult(json.rooms);
+      })
       .catch((error) => console.error(error))
       .finally(() => setLoading(false));
   }, []);
 
   const handlePress: (id: string) => void = (id) => {
-    fetch("http://localhost/room", {
+    fetch("http://192.168.0.13:8080/room", {
       method: "POST",
       headers: {
         Accept: "application/json",
@@ -38,31 +36,56 @@ export default function RoomListScreen({
       },
       body: JSON.stringify({
         id: id,
-        socket: socket,
       }),
-    }).then(() => navigation.navigate("Room", { socket: socket }));
+    }).then(() => navigation.navigate("Room"));
   };
 
+  const searchFilter = (text: string) => {
+    setLoading(true);
+    setText(text);
+    const newData = result.filter((item: { name: string; id: string }) => {
+      const itemData = `${item.name.toUpperCase()} ${item.id.toUpperCase()}`;
+
+      const textData = text.toUpperCase();
+
+      return itemData.indexOf(textData) > -1;
+    });
+
+    setData(newData);
+    setLoading(false);
+  };
+
+  const keyExtractor = (_item: { name: string; id: string }, index: number) =>
+    index.toString();
+
+  const renderItem = ({ item }: { item: { name: string; id: string } }) => (
+    <ListItem bottomDivider onPress={() => handlePress(item.id)}>
+      <ListItem.Content>
+        <ListItem.Title style={styles.title}>{item.name}</ListItem.Title>
+        <ListItem.Subtitle style={styles.subtitle}>{item.id}</ListItem.Subtitle>
+      </ListItem.Content>
+      <ListItem.Chevron />
+    </ListItem>
+  );
+
   return (
-    <View style={styles.container}>
-      <Text>Room List Screen</Text>
-      <SearchTextInput />
+    <View>
+      <SearchBar
+        placeholder="ルーム検索"
+        lightTheme
+        onChangeText={(text) => searchFilter(text)}
+        autoCorrect={false}
+        value={text}
+      />
       {isLoading ? (
         <ActivityIndicator />
       ) : (
         <FlatList
+          keyExtractor={keyExtractor}
           data={data}
-          renderItem={({ item }: { item: { name: string; id: string } }) => (
-            <View style={styles.item}>
-              <Button
-                title={`${item.name} ${item.id}`}
-                onPress={() => handlePress(item.id)}
-              />
-            </View>
-          )}
+          renderItem={renderItem}
         />
       )}
-      <Button title="ホーム画面へ戻る" onPress={() => navigation.goBack()} />
     </View>
   );
 }
@@ -73,15 +96,15 @@ type RoomListScreenNavigationProp = StackNavigationProp<
 >;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
+  title: {
+    fontSize: 30,
+    fontWeight: "400",
+    paddingLeft: 10,
   },
-  item: {
-    margin: 10,
-    fontSize: 18,
-    height: 44,
+  subtitle: {
+    flexDirection: "row",
+    paddingLeft: 10,
+    paddingTop: 5,
+    color: "gray",
   },
 });

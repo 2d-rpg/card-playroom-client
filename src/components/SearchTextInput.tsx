@@ -2,7 +2,7 @@ import React, { ReactElement, useState } from "react";
 import { TextInput, StyleSheet } from "react-native";
 
 export default function SearchTextInput(): ReactElement {
-  const [value, onChangeText] = useState("ルーム検索...");
+  const [value, onChangeText] = useState("");
 
   return (
     <TextInput
