@@ -1,11 +1,19 @@
 import { StatusBar } from "expo-status-bar";
 import React, { ReactElement, useState } from "react";
-import { StyleSheet, View, Text, Button, FlatList } from "react-native";
+import {
+  StyleSheet,
+  View,
+  Text,
+  Button,
+  FlatList,
+  PanResponderGestureState,
+} from "react-native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../../../App";
 import Card from "../../components/Card";
 import { Picker } from "@react-native-community/picker";
 import { ImageProps } from "react-native";
+import GestureRecognizer from "react-native-swipe-gestures";
 
 export default function EditDeckScreen({
   navigation,
@@ -14,6 +22,7 @@ export default function EditDeckScreen({
 }): ReactElement {
   const [groupId, setGroupId] = useState(1);
   const [deckId, setDeckId] = useState(1);
+  const [deckCardList, setDeckCardList] = useState([1, 2, 3, 4]);
   // TODO import groups, cards and decks from database
   const groups: {
     id: number;
@@ -63,23 +72,13 @@ export default function EditDeckScreen({
       cardIds: [1, 2, 3, 4],
     },
   ];
-  // const renderItem = (item: {
-  //   id: number;
-  //   faceUrl: ImageProps;
-  //   backUrl: ImageProps;
-  // }) => <Card faceUrl={item.faceUrl} backUrl={item.backUrl} />;
-  const renderItem = ({
-    item,
-  }: {
-    item: { id: number; faceUrl: ImageProps; backUrl: ImageProps };
-  }) => {
-    return <Card faceUrl={item.faceUrl} backUrl={item.backUrl} />;
-  };
+
   const selectedGroup = groups.filter((group) => group.id == groupId)[0];
   const groupCards = selectedGroup.cardIds.map((cardId, index) => {
     const selectedCard = cards.filter((card) => card.id == cardId)[0];
     return {
       id: index,
+      cardId: selectedCard.id,
       faceUrl: selectedCard.face,
       backUrl: selectedGroup.back,
     };
@@ -92,10 +91,60 @@ export default function EditDeckScreen({
     )[0];
     return {
       id: index,
+      cardId: selectedCard.id,
       faceUrl: selectedCard.face,
       backUrl: cardGroup.back,
     };
   });
+  const renderGroupItem = ({
+    item,
+  }: {
+    item: {
+      id: number;
+      cardId: number;
+      faceUrl: ImageProps;
+      backUrl: ImageProps;
+    };
+  }) => {
+    const config = {
+      velocityThreshold: 0.3,
+      directionalOffsetThreshold: 80,
+    };
+    const onSwipeDown = () => {
+      console.log(selectedDeck.cardIds);
+      selectedDeck.cardIds.push(item.cardId);
+      console.log(selectedDeck.cardIds);
+      setDeckCardList(selectedDeck.cardIds);
+    };
+    return (
+      <GestureRecognizer onSwipeDown={() => onSwipeDown()} config={config}>
+        <Card faceUrl={item.faceUrl} backUrl={item.backUrl} />
+      </GestureRecognizer>
+    );
+  };
+  const renderDeckItem = ({
+    item,
+  }: {
+    item: {
+      id: number;
+      cardId: number;
+      faceUrl: ImageProps;
+      backUrl: ImageProps;
+    };
+  }) => {
+    const config = {
+      velocityThreshold: 0.3,
+      directionalOffsetThreshold: 80,
+    };
+    const onSwipeDown = () => {
+      console.log(item.cardId);
+    };
+    return (
+      <GestureRecognizer onSwipeDown={() => onSwipeDown()} config={config}>
+        <Card faceUrl={item.faceUrl} backUrl={item.backUrl} />
+      </GestureRecognizer>
+    );
+  };
   return (
     <View style={styles.container}>
       <Text>Edit Deck Screen</Text>
@@ -123,7 +172,7 @@ export default function EditDeckScreen({
       </Picker>
       <FlatList
         data={groupCards}
-        renderItem={renderItem}
+        renderItem={renderGroupItem}
         keyExtractor={(item) => item.id.toString()}
         horizontal={true}
       ></FlatList>
@@ -145,7 +194,7 @@ export default function EditDeckScreen({
       </Picker>
       <FlatList
         data={deckCards}
-        renderItem={renderItem}
+        renderItem={renderDeckItem}
         keyExtractor={(item) => item.id.toString()}
         horizontal={true}
       ></FlatList>

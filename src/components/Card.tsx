@@ -1,11 +1,10 @@
-import React, { ReactElement, useState } from "react";
+import React, { ReactElement } from "react";
 import { Image, ImageProps } from "react-native";
 
 export default function Card(props: {
   faceUrl: ImageProps;
   backUrl: ImageProps;
 }): ReactElement {
-  const [isFace, setIsFace] = useState(true);
   return (
     <Image
       style={{
