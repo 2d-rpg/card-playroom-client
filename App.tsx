@@ -7,8 +7,11 @@ import RoomListScreen from "./src/screens/room-list/index";
 import EditDeckScreen from "./src/screens/edit-deck/index";
 import PreferencesScreen from "./src/screens/preferences/index";
 import io from "socket.io-client";
+import { ENDPOINT } from "@env";
 
-// const socket = io("http://localhost:3000", { transports: ["websocket"] });
+const socket = io(ENDPOINT + ":3000", {
+  transports: ["websocket"],
+});
 
 export default function App(): ReactElement {
   return (

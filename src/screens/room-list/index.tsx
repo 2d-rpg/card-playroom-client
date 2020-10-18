@@ -3,6 +3,7 @@ import { StyleSheet, View, FlatList, ActivityIndicator } from "react-native";
 import { SearchBar, ListItem } from "react-native-elements";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../../../App";
+import { ENDPOINT } from "@env";
 
 export default function RoomListScreen({
   navigation,
@@ -15,7 +16,7 @@ export default function RoomListScreen({
   const [text, setText] = useState("");
 
   useEffect(() => {
-    fetch("http://192.168.0.13:8080/rooms", {
+    fetch(ENDPOINT + ":8080/rooms", {
       mode: "no-cors",
     })
       .then((response: Response) => response.json())
@@ -28,7 +29,7 @@ export default function RoomListScreen({
   }, []);
 
   const handlePress: (id: string) => void = (id) => {
-    fetch("http://192.168.0.13:8080/room", {
+    fetch(ENDPOINT + ":8080/room", {
       method: "POST",
       headers: {
         Accept: "application/json",
