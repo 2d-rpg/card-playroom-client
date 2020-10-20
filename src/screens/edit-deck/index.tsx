@@ -16,29 +16,24 @@ export default function EditDeckScreen({
   const [groupId, setGroupId] = useState<number | undefined>(undefined);
   const [deckId, setDeckId] = useState<number | undefined>(undefined);
   const [tempDeckCardIds, setTempDeckCardIds] = useState<number[]>([]);
-
   type renderedCard = {
     id: number;
     cardId: number;
     faceUrl: ImageProps;
     backUrl: ImageProps;
   };
-
   type GroupCardItem = {
     id: number;
     name: string;
     back: ImageProps;
     cardIds: number[];
   };
-
   type DeckCardItem = {
     id: number;
     name: string;
     cardIds: number[];
   };
-
   type abstractCardItem = GroupCardItem | DeckCardItem;
-
   // TODO import groups, cards and decks from database
   // TODO デッキ作成後にグループが変更されたときの処理
   const groups: GroupCardItem[] = [
@@ -89,7 +84,6 @@ export default function EditDeckScreen({
       cardIds: [1],
     },
   ];
-
   const renderGroupItem = ({ item }: { item: renderedCard }) => {
     const config = {
       velocityThreshold: 0.3,
@@ -125,10 +119,12 @@ export default function EditDeckScreen({
       </GestureRecognizer>
     );
   };
-
   const onGroupPickerValueChanged = (itemValue: React.ReactText) => {
-    console.log("hoge");
     const selectedGroupId = parseInt(itemValue.toString());
+    // 2回呼ばれる対策
+    if (selectedGroupId === groupId) {
+      return;
+    }
     if (Number.isNaN(selectedGroupId)) {
       setGroupId(undefined);
     } else {
@@ -136,12 +132,15 @@ export default function EditDeckScreen({
     }
   };
   const onDeckPickerValueChanged = (itemValue: React.ReactText) => {
-    // TODO なぜか2回ずつ呼ばれる
     const selectedDeckId = parseInt(itemValue.toString());
+    // 2回呼ばれる対策
+    if (selectedDeckId === deckId) {
+      return;
+    }
     if (Number.isNaN(selectedDeckId)) {
       setDeckId(undefined);
     } else {
-      // TODO デッキの保存
+      // TODO デッキの保存 再描画されるのでDB必須
       if (deckId != null && tempDeckCardIds != null) {
         const nowDeckCards = decks.filter((deck) => deck.id == deckId)[0];
         nowDeckCards.cardIds = Array.from(tempDeckCardIds);
@@ -156,7 +155,6 @@ export default function EditDeckScreen({
       }
     }
   };
-
   const cardGroupPicker = (
     selectedId: number | undefined,
     onPickerValueChanged: (
@@ -175,7 +173,7 @@ export default function EditDeckScreen({
         {pickerItems.map((pickerItem, index) => {
           return (
             <Picker.Item
-              key={index}
+              key={pickerItem.name}
               label={pickerItem.name}
               value={pickerItem.id}
             />
@@ -249,7 +247,6 @@ export default function EditDeckScreen({
       }
     }
   };
-
   return (
     <View style={styles.container}>
       <Button
@@ -265,6 +262,21 @@ export default function EditDeckScreen({
       <StatusBar style="auto" />
     </View>
   );
+  // これでもhogeは2回呼ばれる
+  // const [state, setState] = useState("java");
+  // return (
+  //   <Picker
+  //     selectedValue={state}
+  //     style={{ height: 50, width: 200 }}
+  //     onValueChange={(itemValue, itemIndex) => {
+  //       console.log("hoge");
+  //       setState(itemValue.toString());
+  //     }}
+  //   >
+  //     <Picker.Item label="Java" value="java" />
+  //     <Picker.Item label="JavaScript" value="js" />
+  //   </Picker>
+  // );
 }
 
 type EditDeckScreenNavigationProp = StackNavigationProp<
