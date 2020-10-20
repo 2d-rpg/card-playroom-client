@@ -40,6 +40,7 @@ export default function EditDeckScreen({
   type abstractCardItem = GroupCardItem | DeckCardItem;
 
   // TODO import groups, cards and decks from database
+  // TODO デッキ作成後にグループが変更されたときの処理
   const groups: GroupCardItem[] = [
     {
       id: 1,
@@ -96,6 +97,9 @@ export default function EditDeckScreen({
     };
     const onSwipeDown = () => {
       console.log(item.cardId);
+      const copyTempDeckCardIds = Array.from(tempDeckCardIds);
+      copyTempDeckCardIds.push(item.cardId);
+      setTempDeckCardIds(copyTempDeckCardIds);
     };
     return (
       <GestureRecognizer onSwipeDown={() => onSwipeDown()} config={config}>
@@ -108,17 +112,22 @@ export default function EditDeckScreen({
       velocityThreshold: 0.3,
       directionalOffsetThreshold: 80,
     };
-    const onSwipeDown = () => {
+    const onSwipeUp = () => {
       console.log(item.cardId);
+      const copyTempDeckCardIds = Array.from(tempDeckCardIds);
+      const index = copyTempDeckCardIds.findIndex((id) => id == item.cardId);
+      copyTempDeckCardIds.splice(index, 1);
+      setTempDeckCardIds(copyTempDeckCardIds);
     };
     return (
-      <GestureRecognizer onSwipeDown={() => onSwipeDown()} config={config}>
+      <GestureRecognizer onSwipeUp={() => onSwipeUp()} config={config}>
         <Card faceUrl={item.faceUrl} backUrl={item.backUrl} />
       </GestureRecognizer>
     );
   };
 
   const onGroupPickerValueChanged = (itemValue: React.ReactText) => {
+    console.log("hoge");
     const selectedGroupId = parseInt(itemValue.toString());
     if (Number.isNaN(selectedGroupId)) {
       setGroupId(undefined);
@@ -127,20 +136,24 @@ export default function EditDeckScreen({
     }
   };
   const onDeckPickerValueChanged = (itemValue: React.ReactText) => {
+    // TODO なぜか2回ずつ呼ばれる
     const selectedDeckId = parseInt(itemValue.toString());
     if (Number.isNaN(selectedDeckId)) {
       setDeckId(undefined);
     } else {
-      // TODO save editing deck
+      // TODO デッキの保存
       if (deckId != null && tempDeckCardIds != null) {
-        const nowDeckCards = decks.filter(
-          (deck) => deck.id == selectedDeckId
-        )[0];
-        nowDeckCards.cardIds = tempDeckCardIds;
+        const nowDeckCards = decks.filter((deck) => deck.id == deckId)[0];
+        nowDeckCards.cardIds = Array.from(tempDeckCardIds);
+        console.log(decks);
+        setDeckId(selectedDeckId);
+        const deckCards = decks.filter((deck) => deck.id == selectedDeckId)[0];
+        setTempDeckCardIds(Array.from(deckCards.cardIds));
+      } else {
+        setDeckId(selectedDeckId);
+        const deckCards = decks.filter((deck) => deck.id == selectedDeckId)[0];
+        setTempDeckCardIds(Array.from(deckCards.cardIds));
       }
-      setDeckId(selectedDeckId);
-      const deckCards = decks.filter((deck) => deck.id == selectedDeckId)[0];
-      setTempDeckCardIds(deckCards.cardIds);
     }
   };
 
