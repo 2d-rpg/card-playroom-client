@@ -119,8 +119,29 @@ export default function EditDeckScreen({
     );
   };
 
+  const onGroupPickerValueChanged = (itemValue: React.ReactText) => {
+    const selectedGroupId = parseInt(itemValue.toString());
+    if (Number.isNaN(selectedGroupId)) {
+      setGroupId(1);
+    } else {
+      setGroupId(selectedGroupId);
+    }
+  };
+  const onDeckPickerValueChanged = (itemValue: React.ReactText) => {
+    const selectedDeckId = parseInt(itemValue.toString());
+    if (Number.isNaN(selectedDeckId)) {
+      setDeckId(1);
+    } else {
+      setDeckId(selectedDeckId);
+    }
+  };
+
   const pickerAndFlatList = (
     selectedId: number,
+    onPickerValueChanged: (
+      itemValue: React.ReactText,
+      itemIndex: number
+    ) => void,
     pickerItems: abstractCardGroup[],
     renderItem: ({ item }: { item: renderedCard }) => JSX.Element
   ) => {
@@ -134,23 +155,21 @@ export default function EditDeckScreen({
         (itemId, index) => {
           const selectedCard = cards.filter((card) => card.id == itemId)[0];
           if ("back" in selectedItem) {
-            const backUrl = selectedItem.back;
             return {
               id: index,
               cardId: selectedCard.id,
               faceUrl: selectedCard.face,
-              backUrl: backUrl,
+              backUrl: selectedItem.back,
             };
           } else {
             const cardGroup = groups.filter(
               (group) => group.id == selectedCard.groupId
             )[0];
-            const backUrl = cardGroup.back;
             return {
               id: index,
               cardId: selectedCard.id,
               faceUrl: selectedCard.face,
-              backUrl: backUrl,
+              backUrl: cardGroup.back,
             };
           }
         }
@@ -160,14 +179,7 @@ export default function EditDeckScreen({
           <Picker
             selectedValue={selectedId}
             style={{ height: 50, width: 200 }}
-            onValueChange={(itemValue) => {
-              const selectedGroupId = parseInt(itemValue.toString());
-              if (Number.isNaN(selectedGroupId)) {
-                setGroupId(1);
-              } else {
-                setGroupId(selectedGroupId);
-              }
-            }}
+            onValueChange={onPickerValueChanged}
           >
             {pickerItems.map((pickerItem, index) => {
               return (
@@ -197,9 +209,19 @@ export default function EditDeckScreen({
         onPress={() => navigation.navigate("Home")}
       />
       <Text>カード一覧</Text>
-      {pickerAndFlatList(groupId, groups, renderGroupItem)}
+      {pickerAndFlatList(
+        groupId,
+        onGroupPickerValueChanged,
+        groups,
+        renderGroupItem
+      )}
       <Text>デッキ</Text>
-      {pickerAndFlatList(deckId, decks, renderDeckItem)}
+      {pickerAndFlatList(
+        deckId,
+        onDeckPickerValueChanged,
+        decks,
+        renderDeckItem
+      )}
       <StatusBar style="auto" />
     </View>
   );
