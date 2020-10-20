@@ -22,7 +22,7 @@ export default function EditDeckScreen({
 }): ReactElement {
   const [groupId, setGroupId] = useState(1);
   const [deckId, setDeckId] = useState(1);
-  const [deckCardList, setDeckCardList] = useState([1, 2, 3, 4]);
+  const [deckCardList, setDeckCardList] = useState([]);
   // TODO import groups, cards and decks from database
   const groups: {
     id: number;
@@ -74,38 +74,34 @@ export default function EditDeckScreen({
   ];
 
   const selectedGroup = groups.filter((group) => group.id == groupId)[0];
-  const groupCards = selectedGroup.cardIds.map((cardId, index) => {
-    const selectedCard = cards.filter((card) => card.id == cardId)[0];
-    return {
-      id: index,
-      cardId: selectedCard.id,
-      faceUrl: selectedCard.face,
-      backUrl: selectedGroup.back,
-    };
-  });
+  const groupCards: renderedCard[] = selectedGroup.cardIds.map(
+    (cardId, index) => {
+      const selectedCard = cards.filter((card) => card.id == cardId)[0];
+      return {
+        id: index,
+        cardId: selectedCard.id,
+        faceUrl: selectedCard.face,
+        backUrl: selectedGroup.back,
+      };
+    }
+  );
   const selectedDeck = decks.filter((deck) => deck.id == deckId)[0];
-  const deckCards = selectedDeck.cardIds.map((cardId, index) => {
-    const selectedCard = cards.filter((card) => card.id == cardId)[0];
-    const cardGroup = groups.filter(
-      (group) => group.id == selectedCard.groupId
-    )[0];
-    return {
-      id: index,
-      cardId: selectedCard.id,
-      faceUrl: selectedCard.face,
-      backUrl: cardGroup.back,
-    };
-  });
-  const renderGroupItem = ({
-    item,
-  }: {
-    item: {
-      id: number;
-      cardId: number;
-      faceUrl: ImageProps;
-      backUrl: ImageProps;
-    };
-  }) => {
+  const deckCards: renderedCard[] = selectedDeck.cardIds.map(
+    (cardId, index) => {
+      const selectedCard = cards.filter((card) => card.id == cardId)[0];
+      const cardGroup = groups.filter(
+        (group) => group.id == selectedCard.groupId
+      )[0];
+      return {
+        id: index,
+        cardId: selectedCard.id,
+        faceUrl: selectedCard.face,
+        backUrl: cardGroup.back,
+      };
+    }
+  );
+
+  const renderGroupItem = ({ item }: { item: renderedCard }) => {
     const config = {
       velocityThreshold: 0.3,
       directionalOffsetThreshold: 80,
@@ -114,7 +110,6 @@ export default function EditDeckScreen({
       console.log(selectedDeck.cardIds);
       selectedDeck.cardIds.push(item.cardId);
       console.log(selectedDeck.cardIds);
-      setDeckCardList(selectedDeck.cardIds);
     };
     return (
       <GestureRecognizer onSwipeDown={() => onSwipeDown()} config={config}>
@@ -122,16 +117,7 @@ export default function EditDeckScreen({
       </GestureRecognizer>
     );
   };
-  const renderDeckItem = ({
-    item,
-  }: {
-    item: {
-      id: number;
-      cardId: number;
-      faceUrl: ImageProps;
-      backUrl: ImageProps;
-    };
-  }) => {
+  const renderDeckItem = ({ item }: { item: renderedCard }) => {
     const config = {
       velocityThreshold: 0.3,
       directionalOffsetThreshold: 80,
@@ -145,72 +131,75 @@ export default function EditDeckScreen({
       </GestureRecognizer>
     );
   };
+
+  type renderedCard = {
+    id: number;
+    cardId: number;
+    faceUrl: ImageProps;
+    backUrl: ImageProps;
+  };
+
+  type abstractCardGroup =
+    | {
+        id: number;
+        name: string;
+        back: ImageProps;
+        cardIds: number[];
+      }
+    | {
+        id: number;
+        name: string;
+        cardIds: number[];
+      };
+
+  const pickerAndFlatList = (
+    selectedId: number,
+    pickerItems: abstractCardGroup[],
+    cardData: renderedCard[],
+    renderItem: ({ item }: { item: renderedCard }) => JSX.Element
+  ) => {
+    return (
+      <React.Fragment>
+        <Picker
+          selectedValue={selectedId}
+          style={{ height: 50, width: 200 }}
+          onValueChange={(itemValue) => {
+            const selectedGroupId = parseInt(itemValue.toString());
+            if (Number.isNaN(selectedGroupId)) {
+              setGroupId(1);
+            } else {
+              setGroupId(selectedGroupId);
+            }
+          }}
+        >
+          {pickerItems.map((pickerItem, index) => {
+            return (
+              <Picker.Item
+                key={index}
+                label={pickerItem.name}
+                value={pickerItem.id}
+              />
+            );
+          })}
+        </Picker>
+        <FlatList
+          data={cardData}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id.toString()}
+          horizontal={true}
+        ></FlatList>
+      </React.Fragment>
+    );
+  };
+
   return (
     <View style={styles.container}>
-      <Text>Edit Deck Screen</Text>
       <Button
-        title="ホーム画面に戻る"
+        title="デッキ編集完了"
         onPress={() => navigation.navigate("Home")}
       />
-      <Picker
-        selectedValue={groupId}
-        style={{ height: 50, width: 200 }}
-        onValueChange={(itemValue) => {
-          const selectedGroupId = parseInt(itemValue.toString());
-          if (Number.isNaN(selectedGroupId)) {
-            setGroupId(1);
-          } else {
-            setGroupId(selectedGroupId);
-          }
-        }}
-      >
-        {groups.map((group, index) => {
-          return (
-            <Picker.Item key={index} label={group.name} value={group.id} />
-          );
-        })}
-      </Picker>
-      <FlatList
-        data={groupCards}
-        renderItem={renderGroupItem}
-        keyExtractor={(item) => item.id.toString()}
-        horizontal={true}
-      ></FlatList>
-      <Picker
-        selectedValue={deckId}
-        style={{ height: 50, width: 200 }}
-        onValueChange={(itemValue) => {
-          const selectedDeckId = parseInt(itemValue.toString());
-          if (Number.isNaN(selectedDeckId)) {
-            setDeckId(1);
-          } else {
-            setDeckId(selectedDeckId);
-          }
-        }}
-      >
-        {decks.map((deck, index) => {
-          return <Picker.Item key={index} label={deck.name} value={deck.id} />;
-        })}
-      </Picker>
-      <FlatList
-        data={deckCards}
-        renderItem={renderDeckItem}
-        keyExtractor={(item) => item.id.toString()}
-        horizontal={true}
-      ></FlatList>
-      {/* {groups
-        .filter((group) => group.id == groupId)
-        .map((filterdGroup) => {
-          const back = filterdGroup.back;
-          const groupCards = filterdGroup.cardIds.map((cardId) => {
-            const filteredCards = cards.filter((card) => card.id == cardId);
-            return filteredCards[0];
-          });
-          const cardsView = groupCards.map((card, index) => {
-            return <Card key={index} faceUrl={card.face} backUrl={back} />;
-          });
-          return cardsView;
-        })} */}
+      {pickerAndFlatList(groupId, groups, groupCards, renderGroupItem)}
+      {pickerAndFlatList(deckId, decks, deckCards, renderDeckItem)}
       <StatusBar style="auto" />
     </View>
   );
