@@ -1,13 +1,6 @@
 import { StatusBar } from "expo-status-bar";
 import React, { ReactElement, useState } from "react";
-import {
-  StyleSheet,
-  View,
-  Text,
-  Button,
-  FlatList,
-  PanResponderGestureState,
-} from "react-native";
+import { StyleSheet, View, Text, Button, FlatList } from "react-native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../../../App";
 import Card from "../../components/Card";
@@ -20,9 +13,11 @@ export default function EditDeckScreen({
 }: {
   navigation: EditDeckScreenNavigationProp;
 }): ReactElement {
-  const [groupId, setGroupId] = useState(1);
-  const [deckId, setDeckId] = useState(1);
-  const [deckCardList, setDeckCardList] = useState([]);
+  const [groupId, setGroupId] = useState<number | undefined>(undefined);
+  const [deckId, setDeckId] = useState<number | undefined>(undefined);
+  const [deckCardList, setDeckCardList] = useState<number[] | undefined>(
+    undefined
+  );
 
   type renderedCard = {
     id: number;
@@ -88,7 +83,18 @@ export default function EditDeckScreen({
       groupId: 2,
     },
   ];
-  const decks: { id: number; name: string; cardIds: number[] }[] = [];
+  const decks: { id: number; name: string; cardIds: number[] }[] = [
+    {
+      id: 1,
+      name: "デフォルト(トランプ)",
+      cardIds: [1, 2, 3, 4],
+    },
+    {
+      id: 2,
+      name: "デフォルト2(トランプ)",
+      cardIds: [1],
+    },
+  ];
 
   const renderGroupItem = ({ item }: { item: renderedCard }) => {
     const config = {
@@ -122,7 +128,7 @@ export default function EditDeckScreen({
   const onGroupPickerValueChanged = (itemValue: React.ReactText) => {
     const selectedGroupId = parseInt(itemValue.toString());
     if (Number.isNaN(selectedGroupId)) {
-      setGroupId(1);
+      setGroupId(undefined);
     } else {
       setGroupId(selectedGroupId);
     }
@@ -130,14 +136,14 @@ export default function EditDeckScreen({
   const onDeckPickerValueChanged = (itemValue: React.ReactText) => {
     const selectedDeckId = parseInt(itemValue.toString());
     if (Number.isNaN(selectedDeckId)) {
-      setDeckId(1);
+      setDeckId(undefined);
     } else {
       setDeckId(selectedDeckId);
     }
   };
 
   const pickerAndFlatList = (
-    selectedId: number,
+    selectedId: number | undefined,
     onPickerValueChanged: (
       itemValue: React.ReactText,
       itemIndex: number
@@ -145,8 +151,28 @@ export default function EditDeckScreen({
     pickerItems: abstractCardGroup[],
     renderItem: ({ item }: { item: renderedCard }) => JSX.Element
   ) => {
-    if (pickerItems.length == 0) {
-      return <Text>要素がありません</Text>;
+    if (selectedId == null) {
+      return (
+        <React.Fragment>
+          <Picker
+            selectedValue={selectedId}
+            style={{ height: 50, width: 200 }}
+            onValueChange={onPickerValueChanged}
+          >
+            <Picker.Item label="選択なし" value="none" />
+            {pickerItems.map((pickerItem, index) => {
+              return (
+                <Picker.Item
+                  key={index}
+                  label={pickerItem.name}
+                  value={pickerItem.id}
+                />
+              );
+            })}
+          </Picker>
+          <Text>選択してください</Text>
+        </React.Fragment>
+      );
     } else {
       const selectedItem = pickerItems.filter(
         (pickerItem) => pickerItem.id == selectedId
@@ -181,6 +207,7 @@ export default function EditDeckScreen({
             style={{ height: 50, width: 200 }}
             onValueChange={onPickerValueChanged}
           >
+            <Picker.Item label="選択なし" value="none" />
             {pickerItems.map((pickerItem, index) => {
               return (
                 <Picker.Item
@@ -191,12 +218,14 @@ export default function EditDeckScreen({
               );
             })}
           </Picker>
-          <FlatList
-            data={cardData}
-            renderItem={renderItem}
-            keyExtractor={(item) => item.id.toString()}
-            horizontal={true}
-          ></FlatList>
+          {selectedId != null && (
+            <FlatList
+              data={cardData}
+              renderItem={renderItem}
+              keyExtractor={(item) => item.id.toString()}
+              horizontal={true}
+            ></FlatList>
+          )}
         </React.Fragment>
       );
     }
