@@ -6,6 +6,7 @@ import RoomScreen from "./src/screens/room/index";
 import RoomListScreen from "./src/screens/room-list/index";
 import EditDeckScreen from "./src/screens/edit-deck/index";
 import PreferencesScreen from "./src/screens/preferences/index";
+import "reflect-metadata";
 
 export default function App(): ReactElement {
   return (

@@ -1,5 +1,5 @@
 import { StatusBar } from "expo-status-bar";
-import React, { ReactElement, useState } from "react";
+import React, { ReactElement, useState, useEffect } from "react";
 import { StyleSheet, View, Text, Button, FlatList } from "react-native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../../../App";
@@ -7,6 +7,15 @@ import Card from "../../components/Card";
 import { Picker } from "@react-native-community/picker";
 import { ImageProps } from "react-native";
 import GestureRecognizer from "react-native-swipe-gestures";
+import {
+  createConnection,
+  getRepository,
+  getConnectionManager,
+  getConnection,
+} from "typeorm/browser";
+import { Deck } from "../../entities/Deck";
+import { NativeSyntheticEvent } from "react-native";
+import { NativeTouchEvent } from "react-native";
 
 export default function EditDeckScreen({
   navigation,
@@ -15,7 +24,47 @@ export default function EditDeckScreen({
 }): ReactElement {
   const [groupId, setGroupId] = useState<number | undefined>(undefined);
   const [deckId, setDeckId] = useState<number | undefined>(undefined);
-  const [tempDeckCardIds, setTempDeckCardIds] = useState<number[]>([]);
+  const [tempDeck, setTempDeck] = useState<Deck | undefined>(undefined);
+  const [decks, setDecks] = useState<Deck[]>([]);
+  useEffect(() => {
+    function connect() {
+      return createConnection({
+        database: "test",
+        driver: require("expo-sqlite"),
+        entities: [Deck],
+        synchronize: true,
+        type: "expo",
+      });
+    }
+    async function loadDecks() {
+      const connectionManager = getConnectionManager();
+      console.log(connectionManager.connections.length);
+      if (connectionManager.connections.length == 0) {
+        await connect();
+      }
+      const deckRepository = getRepository(Deck);
+      // await deckRepository.clear();
+      const loadedDecks = await deckRepository.find();
+      console.log(loadedDecks);
+      setDecks(loadedDecks);
+      console.log(decks);
+      // console.log();
+      // await connect();
+      // console.log(connectionManager.get());
+      // const deck1 = new Deck();
+      // deck1.name = "新しいデッキ";
+      // deck1.cardIds = [];
+      // const deckRepository = getRepository(Deck);
+      // await deckRepository.clear();
+      // await deckRepository.save(deck1);
+      // console.log("Deck has been saved");
+      // const loadedDecks = await deckRepository.find({
+      //   where: { id: deck1.id },
+      // });
+      // console.log("Deck has been loaded", loadedDecks);
+    }
+    loadDecks();
+  }, []);
   type renderedCard = {
     id: number;
     cardId: number;
@@ -28,12 +77,7 @@ export default function EditDeckScreen({
     back: ImageProps;
     cardIds: number[];
   };
-  type DeckCardItem = {
-    id: number;
-    name: string;
-    cardIds: number[];
-  };
-  type abstractCardItem = GroupCardItem | DeckCardItem;
+  type abstractCardItem = GroupCardItem | Deck;
   // TODO import groups, cards and decks from database
   // TODO デッキ作成後にグループが変更されたときの処理
   const groups: GroupCardItem[] = [
@@ -72,28 +116,23 @@ export default function EditDeckScreen({
       groupId: 2,
     },
   ];
-  const decks: DeckCardItem[] = [
-    {
-      id: 1,
-      name: "デフォルト(トランプ)",
-      cardIds: [1, 2, 3, 4],
-    },
-    {
-      id: 2,
-      name: "デフォルト2(トランプ)",
-      cardIds: [1],
-    },
-  ];
   const renderGroupItem = ({ item }: { item: renderedCard }) => {
     const config = {
       velocityThreshold: 0.3,
       directionalOffsetThreshold: 80,
     };
     const onSwipeDown = () => {
-      console.log(item.cardId);
-      const copyTempDeckCardIds = Array.from(tempDeckCardIds);
-      copyTempDeckCardIds.push(item.cardId);
-      setTempDeckCardIds(copyTempDeckCardIds);
+      if (tempDeck != null && deckId != null) {
+        console.log(item.cardId);
+        const copyTempDeckCardIds = Array.from(tempDeck.cardIds);
+        copyTempDeckCardIds.push(item.cardId);
+        const deckRepository = getRepository(Deck);
+        deckRepository
+          .update({ id: deckId }, { cardIds: copyTempDeckCardIds })
+          .then(() => {
+            setTempDeck(tempDeck);
+          });
+      }
     };
     return (
       <GestureRecognizer onSwipeDown={() => onSwipeDown()} config={config}>
@@ -107,11 +146,13 @@ export default function EditDeckScreen({
       directionalOffsetThreshold: 80,
     };
     const onSwipeUp = () => {
-      console.log(item.cardId);
-      const copyTempDeckCardIds = Array.from(tempDeckCardIds);
-      const index = copyTempDeckCardIds.findIndex((id) => id == item.cardId);
-      copyTempDeckCardIds.splice(index, 1);
-      setTempDeckCardIds(copyTempDeckCardIds);
+      if (tempDeck != null) {
+        console.log(item.cardId);
+        const copyTempDeckCardIds = Array.from(tempDeck.cardIds);
+        const index = copyTempDeckCardIds.findIndex((id) => id == item.cardId);
+        copyTempDeckCardIds.splice(index, 1);
+        // setTempDeckCardIds(copyTempDeckCardIds);
+      }
     };
     return (
       <GestureRecognizer onSwipeUp={() => onSwipeUp()} config={config}>
@@ -141,17 +182,17 @@ export default function EditDeckScreen({
       setDeckId(undefined);
     } else {
       // TODO デッキの保存 再描画されるのでDB必須
-      if (deckId != null && tempDeckCardIds != null) {
+      if (deckId != null && tempDeck != null) {
         const nowDeckCards = decks.filter((deck) => deck.id == deckId)[0];
-        nowDeckCards.cardIds = Array.from(tempDeckCardIds);
+        nowDeckCards.cardIds = Array.from(tempDeck.cardIds);
         console.log(decks);
         setDeckId(selectedDeckId);
         const deckCards = decks.filter((deck) => deck.id == selectedDeckId)[0];
-        setTempDeckCardIds(Array.from(deckCards.cardIds));
+        // setTempDeck(Array.from(deckCards.cardIds));
       } else {
         setDeckId(selectedDeckId);
         const deckCards = decks.filter((deck) => deck.id == selectedDeckId)[0];
-        setTempDeckCardIds(Array.from(deckCards.cardIds));
+        // setTempDeckCardIds(Array.from(deckCards.cardIds));
       }
     }
   };
@@ -170,7 +211,7 @@ export default function EditDeckScreen({
         onValueChange={onPickerValueChanged}
       >
         <Picker.Item label="選択なし" value="none" />
-        {pickerItems.map((pickerItem, index) => {
+        {pickerItems.map((pickerItem) => {
           return (
             <Picker.Item
               key={pickerItem.name}
@@ -193,7 +234,7 @@ export default function EditDeckScreen({
       const selectedItem = flatListItems.filter(
         (pickerItem) => pickerItem.id == selectedId
       )[0];
-      if ("back" in selectedItem) {
+      if (selectedItem != null && !(selectedItem instanceof Deck)) {
         const cardData: renderedCard[] = selectedItem.cardIds.map(
           (itemId, index) => {
             const selectedCard = cards.filter((card) => card.id == itemId)[0];
@@ -218,8 +259,8 @@ export default function EditDeckScreen({
           </React.Fragment>
         );
       } else {
-        const cardData: renderedCard[] = tempDeckCardIds.map(
-          (itemId, index) => {
+        const cardData: renderedCard[] =
+          tempDeck?.cardIds.map((itemId, index) => {
             const selectedCard = cards.filter((card) => card.id == itemId)[0];
             const cardGroup = groups.filter(
               (group) => group.id == selectedCard.groupId
@@ -230,8 +271,7 @@ export default function EditDeckScreen({
               faceUrl: selectedCard.face,
               backUrl: cardGroup.back,
             };
-          }
-        );
+          }) || [];
         return (
           <React.Fragment>
             {selectedId != null && (
@@ -247,6 +287,35 @@ export default function EditDeckScreen({
       }
     }
   };
+  const deckDeleteButton = (deleteDeckId: number | undefined) => {
+    if (deleteDeckId != null) {
+      return <Button title="デッキ削除" onPress={deleteDeck} />;
+    }
+  };
+  const deleteDeck = () => {
+    const deckRepository = getRepository(Deck);
+    deckRepository.delete({ id: deckId }).then(() => {
+      const copyDecks = Array.from(decks);
+      const index = copyDecks.findIndex((deck) => deck.id == deckId);
+      copyDecks.splice(index, 1);
+      setDecks(copyDecks);
+      setDeckId(undefined);
+      setTempDeck(undefined);
+    });
+  };
+  const createDeck = () => {
+    const newDeck = new Deck();
+    newDeck.name = "新しいデッキ";
+    newDeck.cardIds = [];
+    const deckRepository = getRepository(Deck);
+    deckRepository.save(newDeck).then((deck) => {
+      const copyDecks = Array.from(decks);
+      copyDecks.push(newDeck);
+      setDecks(copyDecks);
+      setDeckId(deck.id);
+      setTempDeck(newDeck);
+    });
+  };
   return (
     <View style={styles.container}>
       <Button
@@ -257,26 +326,13 @@ export default function EditDeckScreen({
       {cardGroupPicker(groupId, onGroupPickerValueChanged, groups)}
       {cardGroupFlatList(groupId, groups, renderGroupItem)}
       <Text>デッキ</Text>
+      <Button title="新しいデッキ作成" onPress={createDeck} />
       {cardGroupPicker(deckId, onDeckPickerValueChanged, decks)}
       {cardGroupFlatList(deckId, decks, renderDeckItem)}
+      {deckDeleteButton(deckId)}
       <StatusBar style="auto" />
     </View>
   );
-  // これでもhogeは2回呼ばれる
-  // const [state, setState] = useState("java");
-  // return (
-  //   <Picker
-  //     selectedValue={state}
-  //     style={{ height: 50, width: 200 }}
-  //     onValueChange={(itemValue, itemIndex) => {
-  //       console.log("hoge");
-  //       setState(itemValue.toString());
-  //     }}
-  //   >
-  //     <Picker.Item label="Java" value="java" />
-  //     <Picker.Item label="JavaScript" value="js" />
-  //   </Picker>
-  // );
 }
 
 type EditDeckScreenNavigationProp = StackNavigationProp<
