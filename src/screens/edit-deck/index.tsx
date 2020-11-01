@@ -11,11 +11,9 @@ import {
   createConnection,
   getRepository,
   getConnectionManager,
-  getConnection,
 } from "typeorm/browser";
 import { Deck } from "../../entities/Deck";
-import { NativeSyntheticEvent } from "react-native";
-import { NativeTouchEvent } from "react-native";
+import Dialog from "react-native-dialog";
 
 export default function EditDeckScreen({
   navigation,
@@ -29,6 +27,11 @@ export default function EditDeckScreen({
   const [localDeckId, setLocalDeckId] = useState<number | undefined>(undefined);
   const [tempCardIds, setTempCardIds] = useState<number[]>([]);
   const [localDecks, setLocalDecks] = useState<Deck[]>([]);
+  const [
+    changeDeckNameDialogVisible,
+    setChangeDeckNameDialogVisible,
+  ] = useState(false);
+  const [tempDeckName, setTempDeckName] = useState("");
   useEffect(() => {
     function connect() {
       return createConnection({
@@ -318,13 +321,50 @@ export default function EditDeckScreen({
     });
   };
 
+  const saveDeckName = async () => {
+    if (localDeckId != null) {
+      const selectedDeck = localDecks.filter(
+        (localDeck) => localDeck.id == localDeckId
+      )[0];
+      selectedDeck.name = tempDeckName;
+      setLocalDecks(localDecks);
+      const deckRepository = getRepository(Deck);
+      await deckRepository.update({ id: localDeckId }, { name: tempDeckName });
+    }
+    setChangeDeckNameDialogVisible(false);
+  };
+  const showDialog = () => {
+    const selectedDeck = localDecks.filter(
+      (localDeck) => localDeck.id == localDeckId
+    )[0];
+    setTempDeckName(selectedDeck.name);
+    setChangeDeckNameDialogVisible(true);
+  };
   const changeDeckNameButton = (deckId: number | undefined) => {
     if (deckId != null) {
-      return <Button title="デッキ名変更" onPress={changeDeckName} />;
+      const selectedDeck = localDecks.filter(
+        (localDeck) => localDeck.id == localDeckId
+      )[0];
+      return (
+        <React.Fragment>
+          <Button title="デッキ名変更" onPress={showDialog} />
+          <Dialog.Container visible={changeDeckNameDialogVisible}>
+            <Dialog.Title>デッキ名変更</Dialog.Title>
+            <Dialog.Input
+              label="デッキ名"
+              onChangeText={(name: string) => setTempDeckName(name)}
+            >
+              {selectedDeck.name}
+            </Dialog.Input>
+            <Dialog.Button
+              label="キャンセル"
+              onPress={() => setChangeDeckNameDialogVisible(false)}
+            />
+            <Dialog.Button label="保存" onPress={saveDeckName} />
+          </Dialog.Container>
+        </React.Fragment>
+      );
     }
-  };
-  const changeDeckName = async () => {
-    const deckId = localDeckId;
   };
 
   return (
