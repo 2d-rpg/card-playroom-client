@@ -181,9 +181,10 @@ export default function EditDeckScreen({
       setServerDeckCardIds(selectedDeck.cardIds);
     }
   };
-  const onDeckPickerValueChanged = (itemValue: React.ReactText) => {
+  const onDeckPickerValueChanged = async (itemValue: React.ReactText) => {
     const selectedDeckId = parseInt(itemValue.toString());
     // 2回呼ばれる対策
+    console.log(selectedDeckId, localDeckId);
     if (selectedDeckId === localDeckId) {
       return;
     }
@@ -192,25 +193,29 @@ export default function EditDeckScreen({
     }
     // 現在のデッキを保存してから編集デッキを変更
     if (Number.isNaN(selectedDeckId)) {
+      setLocalDeckId(undefined);
       const deckRepository = getRepository(Deck);
-      deckRepository
-        .update({ id: localDeckId }, { cardIds: tempCardIds })
-        .then(() => {
-          setLocalDeckId(undefined);
-          setTempCardIds([]);
-        });
+      await deckRepository.update(
+        { id: localDeckId },
+        { cardIds: tempCardIds }
+      );
+      const loadedDecks = await deckRepository.find();
+      setLocalDecks(loadedDecks);
+      setTempCardIds([]);
     } else {
       if (localDeckId != null) {
+        setLocalDeckId(selectedDeckId);
         const deckRepository = getRepository(Deck);
-        deckRepository
-          .update({ id: localDeckId }, { cardIds: tempCardIds })
-          .then(() => {
-            setLocalDeckId(selectedDeckId);
-            const selectedLocalDeck = localDecks.filter(
-              (deck) => deck.id == selectedDeckId
-            )[0];
-            setTempCardIds(selectedLocalDeck.cardIds);
-          });
+        await deckRepository.update(
+          { id: localDeckId },
+          { cardIds: tempCardIds }
+        );
+        const loadedDecks = await deckRepository.find();
+        setLocalDecks(loadedDecks);
+        const selectedLocalDeck = localDecks.filter(
+          (deck) => deck.id == selectedDeckId
+        )[0];
+        setTempCardIds(selectedLocalDeck.cardIds);
       } else {
         setLocalDeckId(selectedDeckId);
         const selectedLocalDeck = localDecks.filter(
@@ -279,38 +284,49 @@ export default function EditDeckScreen({
       return <Button title="デッキ削除" onPress={deleteDeck} />;
     }
   };
-  const deleteDeck = () => {
+  const deleteDeck = async () => {
     const deleteDeckId = localDeckId;
     setLocalDeckId(undefined);
     setTempCardIds([]);
     const deckRepository = getRepository(Deck);
-    deckRepository.delete({ id: deleteDeckId }).then(() => {
+    await deckRepository.delete({ id: deleteDeckId }).then(() => {
       const copyDecks = Array.from(localDecks);
       const index = copyDecks.findIndex((deck) => deck.id == deleteDeckId);
       copyDecks.splice(index, 1);
       setLocalDecks(copyDecks);
     });
   };
-  const createDeck = () => {
+
+  const createDeck = async () => {
     const deckRepository = getRepository(Deck);
     if (localDeckId != null) {
-      deckRepository
-        .update({ id: localDeckId }, { cardIds: tempCardIds })
-        .then(() => {
-          setLocalDeckId(undefined);
-          setTempCardIds([]);
-        });
+      await deckRepository.update(
+        { id: localDeckId },
+        { cardIds: tempCardIds }
+      );
+      const loadedDecks = await deckRepository.find();
+      setLocalDecks(loadedDecks);
     }
     const newDeck = new Deck();
     newDeck.name = "新しいデッキ";
     newDeck.cardIds = [];
-    deckRepository.save(newDeck).then((deck) => {
+    await deckRepository.save(newDeck).then((deck) => {
       const copyDecks = [...localDecks, deck];
       setLocalDecks(copyDecks);
       setLocalDeckId(deck.id);
       setTempCardIds(deck.cardIds);
     });
   };
+
+  const changeDeckNameButton = (deckId: number | undefined) => {
+    if (deckId != null) {
+      return <Button title="デッキ名変更" onPress={changeDeckName} />;
+    }
+  };
+  const changeDeckName = async () => {
+    const deckId = localDeckId;
+  };
+
   return (
     <View style={styles.container}>
       <Button
@@ -326,6 +342,7 @@ export default function EditDeckScreen({
       {cardGroupFlatList(serverDeckId, serverDeckCardIds, renderServerDeckItem)}
       <Text>デッキ</Text>
       <Button title="新しいデッキ作成" onPress={createDeck} />
+      {changeDeckNameButton(localDeckId)}
       {cardGroupPicker(localDeckId, onDeckPickerValueChanged, localDecks)}
       {cardGroupFlatList(localDeckId, tempCardIds, renderLocalDeckItem)}
       {deckDeleteButton(localDeckId)}
