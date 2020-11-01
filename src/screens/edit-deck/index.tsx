@@ -130,6 +130,8 @@ export default function EditDeckScreen({
   };
 
   // ローカルのデッキのカードの描画
+  // TODO 同じカードの描画の際カード下に枚数を表示
+  // TODO カードの並べ替え，ソートをできるようにする
   const renderLocalDeckItem = ({ item }: { item: renderedCard }) => {
     const config = {
       velocityThreshold: 0.3,
