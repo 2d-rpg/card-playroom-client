@@ -44,30 +44,12 @@ export default function EditDeckScreen({
     }
     async function loadDecks() {
       const connectionManager = getConnectionManager();
-      console.log(connectionManager.connections.length);
       if (connectionManager.connections.length == 0) {
         await connect();
       }
       const deckRepository = getRepository(Deck);
-      // await deckRepository.clear();
       const loadedDecks = await deckRepository.find();
-      console.log(loadedDecks);
       setLocalDecks(loadedDecks);
-      console.log(localDecks);
-      // console.log();
-      // await connect();
-      // console.log(connectionManager.get());
-      // const deck1 = new Deck();
-      // deck1.name = "新しいデッキ";
-      // deck1.cardIds = [];
-      // const deckRepository = getRepository(Deck);
-      // await deckRepository.clear();
-      // await deckRepository.save(deck1);
-      // console.log("Deck has been saved");
-      // const loadedDecks = await deckRepository.find({
-      //   where: { id: deck1.id },
-      // });
-      // console.log("Deck has been loaded", loadedDecks);
     }
     loadDecks();
   }, []);
@@ -130,15 +112,8 @@ export default function EditDeckScreen({
     };
     const onSwipeDown = () => {
       if (tempCardIds != null && localDeckId != null) {
-        console.log(item.cardId);
         const copyTempDeckCardIds = [...tempCardIds, item.cardId];
         setTempCardIds(copyTempDeckCardIds);
-        // const deckRepository = getRepository(Deck);
-        // deckRepository
-        //   .update({ id: localDeckId }, { cardIds: copyTempDeckCardIds })
-        //   .then(() => {
-        //     setTempDeck(tempDeck);
-        //   });
       }
     };
     return (
@@ -154,7 +129,6 @@ export default function EditDeckScreen({
     };
     const onSwipeUp = () => {
       if (tempCardIds != null) {
-        console.log(item.cardId);
         const copyTempDeckCardIds = Array.from(tempCardIds);
         const index = copyTempDeckCardIds.findIndex((id) => id == item.cardId);
         copyTempDeckCardIds.splice(index, 1);
@@ -187,7 +161,6 @@ export default function EditDeckScreen({
   const onDeckPickerValueChanged = async (itemValue: React.ReactText) => {
     const selectedDeckId = parseInt(itemValue.toString());
     // 2回呼ばれる対策
-    console.log(selectedDeckId, localDeckId);
     if (selectedDeckId === localDeckId) {
       return;
     }
