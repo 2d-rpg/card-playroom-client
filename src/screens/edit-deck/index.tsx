@@ -22,10 +22,13 @@ export default function EditDeckScreen({
 }: {
   navigation: EditDeckScreenNavigationProp;
 }): ReactElement {
-  const [groupId, setGroupId] = useState<number | undefined>(undefined);
-  const [deckId, setDeckId] = useState<number | undefined>(undefined);
-  const [tempDeck, setTempDeck] = useState<Deck | undefined>(undefined);
-  const [decks, setDecks] = useState<Deck[]>([]);
+  const [serverDeckId, setServerDeckId] = useState<number | undefined>(
+    undefined
+  );
+  const [serverDeckCardIds, setServerDeckCardIds] = useState<number[]>([]);
+  const [localDeckId, setLocalDeckId] = useState<number | undefined>(undefined);
+  const [tempCardIds, setTempCardIds] = useState<number[]>([]);
+  const [localDecks, setLocalDecks] = useState<Deck[]>([]);
   useEffect(() => {
     function connect() {
       return createConnection({
@@ -46,8 +49,8 @@ export default function EditDeckScreen({
       // await deckRepository.clear();
       const loadedDecks = await deckRepository.find();
       console.log(loadedDecks);
-      setDecks(loadedDecks);
-      console.log(decks);
+      setLocalDecks(loadedDecks);
+      console.log(localDecks);
       // console.log();
       // await connect();
       // console.log(connectionManager.get());
@@ -71,67 +74,68 @@ export default function EditDeckScreen({
     faceUrl: ImageProps;
     backUrl: ImageProps;
   };
-  type GroupCardItem = {
-    id: number;
-    name: string;
-    back: ImageProps;
-    cardIds: number[];
-  };
-  type abstractCardItem = GroupCardItem | Deck;
+
   // TODO import groups, cards and decks from database
   // TODO デッキ作成後にグループが変更されたときの処理
-  const groups: GroupCardItem[] = [
+  const serverDecks: Deck[] = [
     {
       id: 1,
       name: "トランプ",
-      back: require("../../../assets/default/back/card_back.png"),
       cardIds: [1, 2, 1, 1, 1, 1, 1],
     },
     {
       id: 2,
       name: "トランプ2",
-      back: require("../../../assets/default/back/card_back.png"),
       cardIds: [3, 4],
     },
   ];
-  const cards: { id: number; face: ImageProps; groupId: number }[] = [
+  const cards: {
+    id: number;
+    face: ImageProps;
+    back: ImageProps;
+    groupId: number;
+  }[] = [
     {
       id: 1,
       face: require("../../../assets/default/face/card_club_01.png"),
+      back: require("../../../assets/default/back/card_back.png"),
       groupId: 1,
     },
     {
       id: 2,
       face: require("../../../assets/default/face/card_club_02.png"),
+      back: require("../../../assets/default/back/card_back.png"),
       groupId: 1,
     },
     {
       id: 3,
       face: require("../../../assets/default/face/card_club_03.png"),
+      back: require("../../../assets/default/back/card_back.png"),
       groupId: 2,
     },
     {
       id: 4,
       face: require("../../../assets/default/face/card_club_04.png"),
+      back: require("../../../assets/default/back/card_back.png"),
       groupId: 2,
     },
   ];
-  const renderGroupItem = ({ item }: { item: renderedCard }) => {
+  const renderServerDeckItem = ({ item }: { item: renderedCard }) => {
     const config = {
       velocityThreshold: 0.3,
       directionalOffsetThreshold: 80,
     };
     const onSwipeDown = () => {
-      if (tempDeck != null && deckId != null) {
+      if (tempCardIds != null && localDeckId != null) {
         console.log(item.cardId);
-        const copyTempDeckCardIds = Array.from(tempDeck.cardIds);
-        copyTempDeckCardIds.push(item.cardId);
-        const deckRepository = getRepository(Deck);
-        deckRepository
-          .update({ id: deckId }, { cardIds: copyTempDeckCardIds })
-          .then(() => {
-            setTempDeck(tempDeck);
-          });
+        const copyTempDeckCardIds = [...tempCardIds, item.cardId];
+        setTempCardIds(copyTempDeckCardIds);
+        // const deckRepository = getRepository(Deck);
+        // deckRepository
+        //   .update({ id: localDeckId }, { cardIds: copyTempDeckCardIds })
+        //   .then(() => {
+        //     setTempDeck(tempDeck);
+        //   });
       }
     };
     return (
@@ -140,18 +144,18 @@ export default function EditDeckScreen({
       </GestureRecognizer>
     );
   };
-  const renderDeckItem = ({ item }: { item: renderedCard }) => {
+  const renderLocalDeckItem = ({ item }: { item: renderedCard }) => {
     const config = {
       velocityThreshold: 0.3,
       directionalOffsetThreshold: 80,
     };
     const onSwipeUp = () => {
-      if (tempDeck != null) {
+      if (tempCardIds != null) {
         console.log(item.cardId);
-        const copyTempDeckCardIds = Array.from(tempDeck.cardIds);
+        const copyTempDeckCardIds = Array.from(tempCardIds);
         const index = copyTempDeckCardIds.findIndex((id) => id == item.cardId);
         copyTempDeckCardIds.splice(index, 1);
-        // setTempDeckCardIds(copyTempDeckCardIds);
+        setTempCardIds(copyTempDeckCardIds);
       }
     };
     return (
@@ -160,39 +164,59 @@ export default function EditDeckScreen({
       </GestureRecognizer>
     );
   };
-  const onGroupPickerValueChanged = (itemValue: React.ReactText) => {
+  const onServerDeckPickerValueChanged = (itemValue: React.ReactText) => {
     const selectedGroupId = parseInt(itemValue.toString());
     // 2回呼ばれる対策
-    if (selectedGroupId === groupId) {
+    if (selectedGroupId === serverDeckId) {
       return;
     }
     if (Number.isNaN(selectedGroupId)) {
-      setGroupId(undefined);
+      setServerDeckId(undefined);
+      setServerDeckCardIds([]);
     } else {
-      setGroupId(selectedGroupId);
+      const selectedDeck = serverDecks.filter(
+        (serverDeck) => serverDeck.id == selectedGroupId
+      )[0];
+      setServerDeckId(selectedGroupId);
+      setServerDeckCardIds(selectedDeck.cardIds);
     }
   };
   const onDeckPickerValueChanged = (itemValue: React.ReactText) => {
     const selectedDeckId = parseInt(itemValue.toString());
     // 2回呼ばれる対策
-    if (selectedDeckId === deckId) {
+    if (selectedDeckId === localDeckId) {
       return;
     }
+    if (Number.isNaN(selectedDeckId) && localDeckId == null) {
+      return;
+    }
+    // 現在のデッキを保存してから編集デッキを変更
     if (Number.isNaN(selectedDeckId)) {
-      setDeckId(undefined);
+      const deckRepository = getRepository(Deck);
+      deckRepository
+        .update({ id: localDeckId }, { cardIds: tempCardIds })
+        .then(() => {
+          setLocalDeckId(undefined);
+          setTempCardIds([]);
+        });
     } else {
-      // TODO デッキの保存 再描画されるのでDB必須
-      if (deckId != null && tempDeck != null) {
-        const nowDeckCards = decks.filter((deck) => deck.id == deckId)[0];
-        nowDeckCards.cardIds = Array.from(tempDeck.cardIds);
-        console.log(decks);
-        setDeckId(selectedDeckId);
-        const deckCards = decks.filter((deck) => deck.id == selectedDeckId)[0];
-        // setTempDeck(Array.from(deckCards.cardIds));
+      if (localDeckId != null) {
+        const deckRepository = getRepository(Deck);
+        deckRepository
+          .update({ id: localDeckId }, { cardIds: tempCardIds })
+          .then(() => {
+            setLocalDeckId(selectedDeckId);
+            const selectedLocalDeck = localDecks.filter(
+              (deck) => deck.id == selectedDeckId
+            )[0];
+            setTempCardIds(selectedLocalDeck.cardIds);
+          });
       } else {
-        setDeckId(selectedDeckId);
-        const deckCards = decks.filter((deck) => deck.id == selectedDeckId)[0];
-        // setTempDeckCardIds(Array.from(deckCards.cardIds));
+        setLocalDeckId(selectedDeckId);
+        const selectedLocalDeck = localDecks.filter(
+          (deck) => deck.id == selectedDeckId
+        )[0];
+        setTempCardIds(selectedLocalDeck.cardIds);
       }
     }
   };
@@ -202,7 +226,7 @@ export default function EditDeckScreen({
       itemValue: React.ReactText,
       itemIndex: number
     ) => void,
-    pickerItems: abstractCardItem[]
+    pickerItems: Deck[]
   ) => {
     return (
       <Picker
@@ -214,7 +238,7 @@ export default function EditDeckScreen({
         {pickerItems.map((pickerItem) => {
           return (
             <Picker.Item
-              key={pickerItem.name}
+              key={pickerItem.id}
               label={pickerItem.name}
               value={pickerItem.id}
             />
@@ -225,66 +249,29 @@ export default function EditDeckScreen({
   };
   const cardGroupFlatList = (
     selectedId: number | undefined,
-    flatListItems: abstractCardItem[],
+    cardIds: number[],
     renderItem: ({ item }: { item: renderedCard }) => JSX.Element
   ) => {
     if (selectedId == null) {
       return <Text>選択してください</Text>;
     } else {
-      const selectedItem = flatListItems.filter(
-        (pickerItem) => pickerItem.id == selectedId
-      )[0];
-      if (selectedItem != null && !(selectedItem instanceof Deck)) {
-        const cardData: renderedCard[] = selectedItem.cardIds.map(
-          (itemId, index) => {
-            const selectedCard = cards.filter((card) => card.id == itemId)[0];
-            return {
-              id: index,
-              cardId: selectedCard.id,
-              faceUrl: selectedCard.face,
-              backUrl: selectedItem.back,
-            };
-          }
-        );
-        return (
-          <React.Fragment>
-            {selectedId != null && (
-              <FlatList
-                data={cardData}
-                renderItem={renderItem}
-                keyExtractor={(item) => item.id.toString()}
-                horizontal={true}
-              ></FlatList>
-            )}
-          </React.Fragment>
-        );
-      } else {
-        const cardData: renderedCard[] =
-          tempDeck?.cardIds.map((itemId, index) => {
-            const selectedCard = cards.filter((card) => card.id == itemId)[0];
-            const cardGroup = groups.filter(
-              (group) => group.id == selectedCard.groupId
-            )[0];
-            return {
-              id: index,
-              cardId: selectedCard.id,
-              faceUrl: selectedCard.face,
-              backUrl: cardGroup.back,
-            };
-          }) || [];
-        return (
-          <React.Fragment>
-            {selectedId != null && (
-              <FlatList
-                data={cardData}
-                renderItem={renderItem}
-                keyExtractor={(item) => item.id.toString()}
-                horizontal={true}
-              ></FlatList>
-            )}
-          </React.Fragment>
-        );
-      }
+      const flatListItems = cardIds.map((cardId, index) => {
+        const selectedCard = cards.filter((card) => card.id == cardId)[0];
+        return {
+          id: index,
+          cardId: cardId,
+          faceUrl: selectedCard.face,
+          backUrl: selectedCard.back,
+        };
+      });
+      return (
+        <FlatList
+          data={flatListItems}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id.toString()}
+          horizontal={true}
+        ></FlatList>
+      );
     }
   };
   const deckDeleteButton = (deleteDeckId: number | undefined) => {
@@ -293,27 +280,35 @@ export default function EditDeckScreen({
     }
   };
   const deleteDeck = () => {
+    const deleteDeckId = localDeckId;
+    setLocalDeckId(undefined);
+    setTempCardIds([]);
     const deckRepository = getRepository(Deck);
-    deckRepository.delete({ id: deckId }).then(() => {
-      const copyDecks = Array.from(decks);
-      const index = copyDecks.findIndex((deck) => deck.id == deckId);
+    deckRepository.delete({ id: deleteDeckId }).then(() => {
+      const copyDecks = Array.from(localDecks);
+      const index = copyDecks.findIndex((deck) => deck.id == deleteDeckId);
       copyDecks.splice(index, 1);
-      setDecks(copyDecks);
-      setDeckId(undefined);
-      setTempDeck(undefined);
+      setLocalDecks(copyDecks);
     });
   };
   const createDeck = () => {
+    const deckRepository = getRepository(Deck);
+    if (localDeckId != null) {
+      deckRepository
+        .update({ id: localDeckId }, { cardIds: tempCardIds })
+        .then(() => {
+          setLocalDeckId(undefined);
+          setTempCardIds([]);
+        });
+    }
     const newDeck = new Deck();
     newDeck.name = "新しいデッキ";
     newDeck.cardIds = [];
-    const deckRepository = getRepository(Deck);
     deckRepository.save(newDeck).then((deck) => {
-      const copyDecks = Array.from(decks);
-      copyDecks.push(newDeck);
-      setDecks(copyDecks);
-      setDeckId(deck.id);
-      setTempDeck(newDeck);
+      const copyDecks = [...localDecks, deck];
+      setLocalDecks(copyDecks);
+      setLocalDeckId(deck.id);
+      setTempCardIds(deck.cardIds);
     });
   };
   return (
@@ -323,13 +318,17 @@ export default function EditDeckScreen({
         onPress={() => navigation.navigate("Home")}
       />
       <Text>カード一覧</Text>
-      {cardGroupPicker(groupId, onGroupPickerValueChanged, groups)}
-      {cardGroupFlatList(groupId, groups, renderGroupItem)}
+      {cardGroupPicker(
+        serverDeckId,
+        onServerDeckPickerValueChanged,
+        serverDecks
+      )}
+      {cardGroupFlatList(serverDeckId, serverDeckCardIds, renderServerDeckItem)}
       <Text>デッキ</Text>
       <Button title="新しいデッキ作成" onPress={createDeck} />
-      {cardGroupPicker(deckId, onDeckPickerValueChanged, decks)}
-      {cardGroupFlatList(deckId, decks, renderDeckItem)}
-      {deckDeleteButton(deckId)}
+      {cardGroupPicker(localDeckId, onDeckPickerValueChanged, localDecks)}
+      {cardGroupFlatList(localDeckId, tempCardIds, renderLocalDeckItem)}
+      {deckDeleteButton(localDeckId)}
       <StatusBar style="auto" />
     </View>
   );
