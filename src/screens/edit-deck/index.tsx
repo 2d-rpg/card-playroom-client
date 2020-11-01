@@ -116,6 +116,7 @@ export default function EditDeckScreen({
       directionalOffsetThreshold: 80,
     };
     // 下スワイプでローカルのデッキにカードを追加
+    // TODO アニメーション
     const onSwipeDown = () => {
       if (tempCardIds != null && localDeckId != null) {
         const copyTempDeckCardIds = [...tempCardIds, item.cardId];
@@ -137,7 +138,8 @@ export default function EditDeckScreen({
       velocityThreshold: 0.3,
       directionalOffsetThreshold: 80,
     };
-    //上スワイプでローカルのデッキからカードを削除
+    // 上スワイプでローカルのデッキからカードを削除
+    // TODO アニメーション
     const onSwipeUp = () => {
       if (tempCardIds != null) {
         const copyTempDeckCardIds = Array.from(tempCardIds);
