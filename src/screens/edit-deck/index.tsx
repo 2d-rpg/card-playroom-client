@@ -32,6 +32,8 @@ export default function EditDeckScreen({
     setChangeDeckNameDialogVisible,
   ] = useState(false);
   const [tempDeckName, setTempDeckName] = useState("");
+
+  // 最初にローカルに保存されているデッキをロード
   useEffect(() => {
     function connect() {
       return createConnection({
@@ -53,6 +55,8 @@ export default function EditDeckScreen({
     }
     loadDecks();
   }, []);
+
+  // 表示カードの型
   type renderedCard = {
     id: number;
     cardId: number;
@@ -60,8 +64,7 @@ export default function EditDeckScreen({
     backUrl: ImageProps;
   };
 
-  // TODO import groups, cards and decks from database
-  // TODO デッキ作成後にグループが変更されたときの処理
+  // TODO Rustサーバーからデッキをインポート
   const serverDecks: Deck[] = [
     {
       id: 1,
@@ -105,11 +108,14 @@ export default function EditDeckScreen({
       groupId: 2,
     },
   ];
+
+  // サーバーのデッキのカードの描画
   const renderServerDeckItem = ({ item }: { item: renderedCard }) => {
     const config = {
       velocityThreshold: 0.3,
       directionalOffsetThreshold: 80,
     };
+    // 下スワイプでローカルのデッキにカードを追加
     const onSwipeDown = () => {
       if (tempCardIds != null && localDeckId != null) {
         const copyTempDeckCardIds = [...tempCardIds, item.cardId];
@@ -122,11 +128,14 @@ export default function EditDeckScreen({
       </GestureRecognizer>
     );
   };
+
+  // ローカルのデッキのカードの描画
   const renderLocalDeckItem = ({ item }: { item: renderedCard }) => {
     const config = {
       velocityThreshold: 0.3,
       directionalOffsetThreshold: 80,
     };
+    //上スワイプでローカルのデッキからカードを削除
     const onSwipeUp = () => {
       if (tempCardIds != null) {
         const copyTempDeckCardIds = Array.from(tempCardIds);
@@ -141,6 +150,8 @@ export default function EditDeckScreen({
       </GestureRecognizer>
     );
   };
+
+  // サーバーのデッキ選択処理
   const onServerDeckPickerValueChanged = (itemValue: React.ReactText) => {
     const selectedGroupId = parseInt(itemValue.toString());
     // 2回呼ばれる対策
@@ -158,7 +169,9 @@ export default function EditDeckScreen({
       setServerDeckCardIds(selectedDeck.cardIds);
     }
   };
-  const onDeckPickerValueChanged = async (itemValue: React.ReactText) => {
+
+  // ローカルのデッキ選択処理
+  const onLocalDeckPickerValueChanged = async (itemValue: React.ReactText) => {
     const selectedDeckId = parseInt(itemValue.toString());
     // 2回呼ばれる対策
     if (selectedDeckId === localDeckId) {
@@ -201,6 +214,8 @@ export default function EditDeckScreen({
       }
     }
   };
+
+  // ローカル/サーバー のデッキ選択のためのセレクトボックス
   const cardGroupPicker = (
     selectedId: number | undefined,
     onPickerValueChanged: (
@@ -228,6 +243,8 @@ export default function EditDeckScreen({
       </Picker>
     );
   };
+
+  // ローカル/サーバー のカードをリスト表示
   const cardGroupFlatList = (
     selectedId: number | undefined,
     cardIds: number[],
@@ -255,11 +272,8 @@ export default function EditDeckScreen({
       );
     }
   };
-  const deckDeleteButton = (deleteDeckId: number | undefined) => {
-    if (deleteDeckId != null) {
-      return <Button title="デッキ削除" onPress={deleteDeck} />;
-    }
-  };
+
+  // デッキ削除
   const deleteDeck = async () => {
     const deleteDeckId = localDeckId;
     setLocalDeckId(undefined);
@@ -272,7 +286,13 @@ export default function EditDeckScreen({
       setLocalDecks(copyDecks);
     });
   };
+  const deckDeleteButton = (deleteDeckId: number | undefined) => {
+    if (deleteDeckId != null) {
+      return <Button title="デッキ削除" onPress={deleteDeck} />;
+    }
+  };
 
+  // デッキ作成
   const createDeck = async () => {
     const deckRepository = getRepository(Deck);
     if (localDeckId != null) {
@@ -294,6 +314,7 @@ export default function EditDeckScreen({
     });
   };
 
+  // デッキ名変更
   const saveDeckName = async () => {
     if (localDeckId != null) {
       const selectedDeck = localDecks.filter(
@@ -340,12 +361,22 @@ export default function EditDeckScreen({
     }
   };
 
+  // 編集中のデッキを保存し，ホームに戻る
+  const saveDeck = async () => {
+    const deckRepository = getRepository(Deck);
+    console.log(localDeckId);
+    if (localDeckId != null) {
+      await deckRepository.update(
+        { id: localDeckId },
+        { cardIds: tempCardIds }
+      );
+    }
+    navigation.navigate("Home");
+  };
+
   return (
     <View style={styles.container}>
-      <Button
-        title="デッキ編集完了"
-        onPress={() => navigation.navigate("Home")}
-      />
+      <Button title="デッキ編集完了" onPress={saveDeck} />
       <Text>カード一覧</Text>
       {cardGroupPicker(
         serverDeckId,
@@ -356,7 +387,7 @@ export default function EditDeckScreen({
       <Text>デッキ</Text>
       <Button title="新しいデッキ作成" onPress={createDeck} />
       {changeDeckNameButton(localDeckId)}
-      {cardGroupPicker(localDeckId, onDeckPickerValueChanged, localDecks)}
+      {cardGroupPicker(localDeckId, onLocalDeckPickerValueChanged, localDecks)}
       {cardGroupFlatList(localDeckId, tempCardIds, renderLocalDeckItem)}
       {deckDeleteButton(localDeckId)}
       <StatusBar style="auto" />
