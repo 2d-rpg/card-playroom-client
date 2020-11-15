@@ -1,9 +1,31 @@
-import React, { ReactElement, useEffect, useState } from "react";
+import React, { ReactElement, useState, useEffect } from "react";
 import { StyleSheet, View, FlatList, ActivityIndicator } from "react-native";
 import { SearchBar, ListItem } from "react-native-elements";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../../../App";
 import { ENDPOINT } from "@env";
+import { gql, useQuery, useMutation } from "@apollo/client";
+
+const ROOMS_QUERY = gql`
+  query {
+    rooms {
+      id
+      name
+    }
+  }
+`;
+
+const ENTER_ROOM = gql`
+  mutation EnterRoom($player: String!, $roomId: Int!) {
+    enterRoom(player: $player, roomId: $roomId) {
+      id
+      name
+      players
+    }
+  }
+`;
+
+const socket = new WebSocket(ENDPOINT + ":3000");
 
 export default function RoomListScreen({
   navigation,
@@ -11,34 +33,23 @@ export default function RoomListScreen({
   navigation: RoomListScreenNavigationProp;
 }): ReactElement {
   const [isLoading, setLoading] = useState(true);
-  const [data, setData] = useState([]);
+  const [displayData, setDisplayData] = useState([]);
   const [result, setResult] = useState([]);
   const [text, setText] = useState("");
+  const { data, loading, error } = useQuery(ROOMS_QUERY);
+  const [enterRoom] = useMutation(ENTER_ROOM);
 
   useEffect(() => {
-    fetch(ENDPOINT + ":8080/rooms", {
-      mode: "no-cors",
-    })
-      .then((response: Response) => response.json())
-      .then((json) => {
-        setData(json.rooms);
-        setResult(json.rooms);
-      })
-      .catch((error) => console.error(error))
-      .finally(() => setLoading(false));
-  }, []);
+    if (typeof data != "undefined") {
+      setDisplayData(data.rooms);
+      setResult(data.rooms);
+      setLoading(loading);
+    }
+  }, [data]);
 
   const handlePress: (id: string) => void = (id) => {
-    fetch(ENDPOINT + ":8080/room", {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        id: id,
-      }),
-    }).then(() => navigation.navigate("Room"));
+    enterRoom({ variables: { player: "", roomId: parseInt(id) } });
+    navigation.navigate("Room");
   };
 
   const searchFilter = (text: string) => {
@@ -52,7 +63,7 @@ export default function RoomListScreen({
       return itemData.indexOf(textData) > -1;
     });
 
-    setData(newData);
+    setDisplayData(newData);
     setLoading(false);
   };
 
@@ -69,6 +80,8 @@ export default function RoomListScreen({
     </ListItem>
   );
 
+  if (error) console.log(error.message);
+
   return (
     <View>
       <SearchBar
@@ -83,7 +96,7 @@ export default function RoomListScreen({
       ) : (
         <FlatList
           keyExtractor={keyExtractor}
-          data={data}
+          data={displayData}
           renderItem={renderItem}
         />
       )}

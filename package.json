@@ -9,15 +9,19 @@
     "lint": "eslint '*.{ts,tsx}'"
   },
   "dependencies": {
+    "@apollo/client": "^3.2.5",
     "@react-native-community/masked-view": "0.1.10",
     "@react-navigation/native": "^5.7.6",
     "@react-navigation/stack": "^5.9.3",
     "@types/node": "^14.11.10",
     "@types/react-native-elements": "^0.18.0",
     "@types/socket.io-client": "^1.4.34",
+    "@types/yup": "^0.29.9",
     "babel-plugin-dotenv-import": "^2.1.0",
     "expo": "~39.0.2",
     "expo-status-bar": "~1.0.2",
+    "formik": "^2.2.5",
+    "graphql": "^15.4.0",
     "react": "16.13.1",
     "react-dom": "16.13.1",
     "react-native": "https://github.com/expo/react-native/archive/sdk-39.0.2.tar.gz",
@@ -26,7 +30,8 @@
     "react-native-safe-area-context": "3.1.4",
     "react-native-screens": "~2.10.1",
     "react-native-web": "~0.13.12",
-    "socket.io-client": "^2.3.1"
+    "socket.io-client": "^2.3.1",
+    "yup": "^0.29.3"
   },
   "devDependencies": {
     "@types/react": "~16.9.35",
