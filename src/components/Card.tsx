@@ -5,6 +5,7 @@ export default function Card(props: {
   faceUrl: ImageProps;
   backUrl: ImageProps;
 }): ReactElement {
+  // TODO サイズ調整
   return (
     <Image
       style={{
