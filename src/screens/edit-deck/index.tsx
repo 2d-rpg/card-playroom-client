@@ -368,7 +368,6 @@ export default function EditDeckScreen({
   // 編集中のデッキを保存し，ホームに戻る
   const saveDeck = async () => {
     const deckRepository = getRepository(Deck);
-    console.log(localDeckId);
     if (localDeckId != null) {
       await deckRepository.update(
         { id: localDeckId },
