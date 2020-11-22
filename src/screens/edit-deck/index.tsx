@@ -271,7 +271,6 @@ export default function EditDeckScreen({
           data={flatListItems}
           renderItem={renderItem}
           keyExtractor={(item) => item.id.toString()}
-          style={styles.list}
           horizontal={true}
         ></FlatList>
       );
@@ -411,6 +410,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  picker: { flex: 1, width: 200 },
-  list: { flex: 1 },
+  picker: { width: 200 },
 });
