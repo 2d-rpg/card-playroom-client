@@ -231,7 +231,7 @@ export default function EditDeckScreen({
     return (
       <Picker
         selectedValue={selectedId}
-        style={{ height: 50, width: 200 }}
+        style={styles.picker}
         onValueChange={onPickerValueChanged}
       >
         <Picker.Item label="選択なし" value="none" />
@@ -271,6 +271,7 @@ export default function EditDeckScreen({
           data={flatListItems}
           renderItem={renderItem}
           keyExtractor={(item) => item.id.toString()}
+          style={styles.list}
           horizontal={true}
         ></FlatList>
       );
@@ -410,4 +411,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  picker: { flex: 1, width: 200 },
+  list: { flex: 1 },
 });

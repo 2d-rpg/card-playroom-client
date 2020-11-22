@@ -9,8 +9,8 @@ export default function Card(props: {
   return (
     <Image
       style={{
-        width: 136,
-        height: 200,
+        width: 102,
+        height: 150,
       }}
       source={props.faceUrl}
     />
