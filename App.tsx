@@ -9,6 +9,7 @@ import EditDeckScreen from "./src/screens/edit-deck/index";
 import PreferencesScreen from "./src/screens/preferences/index";
 import { ENDPOINT } from "@env";
 import { ApolloClient, InMemoryCache, ApolloProvider } from "@apollo/client";
+import "reflect-metadata";
 
 // const socket = io(ENDPOINT + ":3000", {
 //   transports: ["websocket"],

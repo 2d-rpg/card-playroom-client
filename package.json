@@ -11,6 +11,7 @@
   "dependencies": {
     "@apollo/client": "^3.2.5",
     "@react-native-community/masked-view": "0.1.10",
+    "@react-native-community/picker": "1.6.6",
     "@react-navigation/native": "^5.7.6",
     "@react-navigation/stack": "^5.9.3",
     "@types/node": "^14.11.10",
@@ -18,6 +19,7 @@
     "@types/socket.io-client": "^1.4.34",
     "@types/yup": "^0.29.9",
     "babel-plugin-dotenv-import": "^2.1.0",
+    "@types/react-native-dialog": "^5.6.2",
     "expo": "~39.0.2",
     "expo-status-bar": "~1.0.2",
     "formik": "^2.2.5",
@@ -25,13 +27,17 @@
     "react": "16.13.1",
     "react-dom": "16.13.1",
     "react-native": "https://github.com/expo/react-native/archive/sdk-39.0.2.tar.gz",
+    "react-native-dialog": "^6.1.2",
     "react-native-gesture-handler": "~1.7.0",
     "react-native-reanimated": "~1.13.0",
     "react-native-safe-area-context": "3.1.4",
     "react-native-screens": "~2.10.1",
+    "react-native-swipe-gestures": "^1.0.5",
     "react-native-web": "~0.13.12",
     "socket.io-client": "^2.3.1",
-    "yup": "^0.29.3"
+    "yup": "^0.29.3",
+    "reflect-metadata": "^0.1.13",
+    "typeorm": "^0.2.28"
   },
   "devDependencies": {
     "@types/react": "~16.9.35",
