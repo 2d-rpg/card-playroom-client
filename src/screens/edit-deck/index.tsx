@@ -32,6 +32,14 @@ export default function EditDeckScreen({
     setChangeDeckNameDialogVisible,
   ] = useState(false);
   const [tempDeckName, setTempDeckName] = useState("");
+  const [serverDecks, setServerDecks] = useState<Deck[]>([]);
+  const [cards, setCards] = useState<
+    {
+      id: number;
+      face: ImageProps;
+      back: ImageProps;
+    }[]
+  >([]);
 
   // 最初にローカルに保存されているデッキをロード
   useEffect(() => {
@@ -65,49 +73,44 @@ export default function EditDeckScreen({
   };
 
   // TODO Rustサーバーからデッキをインポート
-  const serverDecks: Deck[] = [
-    {
-      id: 1,
-      name: "トランプ",
-      cardIds: [1, 2, 1, 1, 1, 1, 1],
-    },
-    {
-      id: 2,
-      name: "トランプ2",
-      cardIds: [3, 4],
-    },
-  ];
-  const cards: {
-    id: number;
-    face: ImageProps;
-    back: ImageProps;
-    groupId: number;
-  }[] = [
-    {
-      id: 1,
-      face: require("../../../assets/default/face/card_club_01.png"),
-      back: require("../../../assets/default/back/card_back.png"),
-      groupId: 1,
-    },
-    {
-      id: 2,
-      face: require("../../../assets/default/face/card_club_02.png"),
-      back: require("../../../assets/default/back/card_back.png"),
-      groupId: 1,
-    },
-    {
-      id: 3,
-      face: require("../../../assets/default/face/card_club_03.png"),
-      back: require("../../../assets/default/back/card_back.png"),
-      groupId: 2,
-    },
-    {
-      id: 4,
-      face: require("../../../assets/default/face/card_club_04.png"),
-      back: require("../../../assets/default/back/card_back.png"),
-      groupId: 2,
-    },
-  ];
+  // const serverDecks: Deck[] = [
+  //   {
+  //     id: 1,
+  //     name: "トランプ",
+  //     cardIds: [1, 2, 2],
+  //   },
+  //   {
+  //     id: 2,
+  //     name: "トランプ2",
+  //     cardIds: [3, 4],
+  //   },
+  // ];
+  // const cards: {
+  //   id: number;
+  //   face: ImageProps;
+  //   back: ImageProps;
+  // }[] = [
+  //   {
+  //     id: 1,
+  //     face: require("../../../assets/default/face/card_club_01.png"),
+  //     back: require("../../../assets/default/back/card_back.png"),
+  //   },
+  //   {
+  //     id: 2,
+  //     face: require("../../../assets/default/face/card_club_02.png"),
+  //     back: require("../../../assets/default/back/card_back.png"),
+  //   },
+  //   {
+  //     id: 3,
+  //     face: require("../../../assets/default/face/card_club_03.png"),
+  //     back: require("../../../assets/default/back/card_back.png"),
+  //   },
+  //   {
+  //     id: 4,
+  //     face: require("../../../assets/default/face/card_club_04.png"),
+  //     back: require("../../../assets/default/back/card_back.png"),
+  //   },
+  // ];
 
   // サーバーのデッキのカードの描画
   const renderServerDeckItem = ({ item }: { item: renderedCard }) => {
