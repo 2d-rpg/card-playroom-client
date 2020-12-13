@@ -14,6 +14,17 @@ import {
 } from "typeorm/browser";
 import { Deck } from "../../entities/Deck";
 import Dialog from "react-native-dialog";
+import { gql, useQuery } from "@apollo/client";
+
+const CARDS_QUERY = gql`
+  query {
+    cards {
+      id
+      face
+      back
+    }
+  }
+`;
 
 export default function EditDeckScreen({
   navigation,
@@ -32,6 +43,7 @@ export default function EditDeckScreen({
     setChangeDeckNameDialogVisible,
   ] = useState(false);
   const [tempDeckName, setTempDeckName] = useState("");
+  const cardsQueryResult = useQuery(CARDS_QUERY);
   const [serverDecks, setServerDecks] = useState<Deck[]>([]);
   const [cards, setCards] = useState<
     {
@@ -63,6 +75,18 @@ export default function EditDeckScreen({
     }
     loadDecks();
   }, []);
+  useEffect(() => {
+    console.log(cardsQueryResult.loading);
+    if (!cardsQueryResult.loading) {
+      console.log(cardsQueryResult.data.cards);
+      const serverCards: {
+        id: number;
+        face: ImageProps;
+        back: ImageProps;
+      }[] = cardsQueryResult.data.cards;
+      setCards(serverCards);
+    }
+  }, [cardsQueryResult]);
 
   // 表示カードの型
   type renderedCard = {
