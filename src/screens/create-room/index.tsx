@@ -12,6 +12,7 @@ import { RootStackParamList } from "../../../App";
 import { gql, useMutation } from "@apollo/client";
 import { Formik } from "formik";
 import * as Yup from "yup";
+import { ENDPOINT } from "@env";
 
 const CREATE_ROOM = gql`
   mutation CreateRoom($name: String!, $player: String!) {
@@ -28,14 +29,20 @@ export default function CreateRoomScreen({
 }: {
   navigation: CreateRoomScreenNavigationProp;
 }): ReactElement {
-  const [createRoom, { data }] = useMutation(CREATE_ROOM);
+  const [createRoom] = useMutation(CREATE_ROOM, {
+    onCompleted: (data) => {
+      console.log(data.createRoom.id);
+      navigation.navigate("Room", { id: data.createRoom.id }); // TODO
+    },
+  });
 
   const onSubmit = async (values: { name: string }) => {
     // データ送信
     console.log(values);
-
+    // WebSocket Start
+    const ws = new WebSocket(ENDPOINT + ":8080/ws");
+    ws.onmessage = (event) => {};
     createRoom({ variables: { name: values.name, player: "piypiyo" } });
-    navigation.navigate("Room");
   };
 
   const schema = Yup.object().shape({

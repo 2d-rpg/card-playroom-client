@@ -16,7 +16,7 @@ export default function HomeScreen({
         <View style={styles.button}>
           <Button
             title="ルーム作成"
-            onPress={() => navigation.navigate("Room")}
+            onPress={() => navigation.navigate("CreateRoom")}
           />
         </View>
         <View style={styles.button}>

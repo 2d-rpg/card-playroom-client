@@ -25,8 +25,6 @@ const ENTER_ROOM = gql`
   }
 `;
 
-const socket = new WebSocket(ENDPOINT + ":3000");
-
 export default function RoomListScreen({
   navigation,
 }: {
@@ -37,7 +35,12 @@ export default function RoomListScreen({
   const [result, setResult] = useState([]);
   const [text, setText] = useState("");
   const { data, loading, error } = useQuery(ROOMS_QUERY);
-  const [enterRoom] = useMutation(ENTER_ROOM);
+  const [enterRoom] = useMutation(ENTER_ROOM, {
+    onCompleted: (data) => {
+      console.log(data.enterRoom.id);
+      navigation.navigate("Room", { id: data.enterRoom.id }); // TODO
+    },
+  });
 
   useEffect(() => {
     if (typeof data != "undefined") {
@@ -49,7 +52,6 @@ export default function RoomListScreen({
 
   const handlePress: (id: string) => void = (id) => {
     enterRoom({ variables: { player: "", roomId: parseInt(id) } });
-    navigation.navigate("Room");
   };
 
   const searchFilter = (text: string) => {

@@ -8,18 +8,45 @@ import RoomListScreen from "./src/screens/room-list/index";
 import EditDeckScreen from "./src/screens/edit-deck/index";
 import PreferencesScreen from "./src/screens/preferences/index";
 import { ENDPOINT } from "@env";
-import { ApolloClient, InMemoryCache, ApolloProvider } from "@apollo/client";
+import {
+  ApolloClient,
+  HttpLink,
+  split,
+  InMemoryCache,
+  ApolloProvider,
+} from "@apollo/client";
+import { getMainDefinition } from "@apollo/client/utilities";
+import { WebSocketLink } from "@apollo/client/link/ws";
 import "reflect-metadata";
-
-// const socket = io(ENDPOINT + ":3000", {
-//   transports: ["websocket"],
-// });
 
 const cache = new InMemoryCache();
 
+const httpLink = new HttpLink({
+  uri: "http" + ENDPOINT + ":8080/graphql",
+});
+
+const wsLink = new WebSocketLink({
+  uri: "ws" + ENDPOINT + ":8080/graphql",
+  options: {
+    reconnect: true,
+  },
+});
+
+const splitLink = split(
+  ({ query }) => {
+    const definition = getMainDefinition(query);
+    return (
+      definition.kind === "OperationDefinition" &&
+      definition.operation === "subscription"
+    );
+  },
+  wsLink,
+  httpLink
+);
+
 const client = new ApolloClient({
-  uri: ENDPOINT + ":8080/graphql",
-  cache,
+  cache: cache,
+  link: splitLink,
   defaultOptions: { watchQuery: { fetchPolicy: "cache-and-network" } },
 });
 
@@ -34,16 +61,8 @@ export default function App(): ReactElement {
             headerTintColor: "white",
           }}
         >
-          <Stack.Screen
-            name="Home"
-            component={HomeScreen}
-            // initialParams={{ socket: socket }}
-          />
-          <Stack.Screen
-            name="Room"
-            component={RoomScreen}
-            // initialParams={{ socket: socket }}
-          />
+          <Stack.Screen name="Home" component={HomeScreen} />
+          <Stack.Screen name="Room" component={RoomScreen} />
           <Stack.Screen name="CreateRoom" component={CreateRoomScreen} />
           <Stack.Screen name="RoomList" component={RoomListScreen} />
           <Stack.Screen name="EditDeck" component={EditDeckScreen} />
@@ -56,7 +75,7 @@ export default function App(): ReactElement {
 
 export type RootStackParamList = {
   Home: undefined;
-  Room: undefined;
+  Room: { id: number };
   CreateRoom: undefined;
   RoomList: undefined;
   EditDeck: undefined;
