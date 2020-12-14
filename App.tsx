@@ -12,6 +12,7 @@ import "reflect-metadata";
 
 const cache = new InMemoryCache();
 
+// TODO uriを設定画面から変更できるようにする
 const client = new ApolloClient({
   cache: cache,
   uri: `http://${ENDPOINT}/graphql`,

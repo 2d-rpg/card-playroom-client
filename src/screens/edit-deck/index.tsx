@@ -85,14 +85,10 @@ export default function EditDeckScreen({
     }
     loadDecks();
   }, []);
+  // カードをサーバーからロード
   useEffect(() => {
-    console.log(`card loading ${cardsQueryResult.loading}`);
     if (cardsQueryResult != null && !cardsQueryResult.loading) {
-      if (cardsQueryResult.error != null) {
-        // TODO エラー処理
-        console.log(`card loading error ${cardsQueryResult.error}`);
-      } else {
-        console.log(cardsQueryResult.data.cards);
+      if (cardsQueryResult.error == null) {
         const serverCards: {
           id: number;
           face: string;
@@ -102,14 +98,10 @@ export default function EditDeckScreen({
       }
     }
   }, [cardsQueryResult]);
+  // デッキをサーバーからロード
   useEffect(() => {
-    console.log(`deck loading ${decksQueryResult.loading}`);
     if (decksQueryResult != null && !decksQueryResult.loading) {
-      if (decksQueryResult.error != null) {
-        // TODO エラー処理
-        console.log(`deck loading error ${decksQueryResult.error}`);
-      } else {
-        console.log(decksQueryResult.data.decksWithCards);
+      if (decksQueryResult.error == null) {
         const serverDecks: Deck[] = decksQueryResult.data.decksWithCards;
         setServerDecks(serverDecks);
       }
@@ -122,17 +114,17 @@ export default function EditDeckScreen({
     decksQueryResult == null ||
     decksQueryResult.loading
   ) {
-    // TODO ローディング中処理
+    // TODO ローディング中処理を豪華にする
     return (
       <View style={styles.container}>
         <Text>ローディング中</Text>
       </View>
     );
   } else if (cardsQueryResult.error != null || decksQueryResult.error != null) {
-    // TODO エラー処理
+    // TODO エラー処理を豪華にする
     return (
       <View style={styles.container}>
-        <Text>ローディングエラー</Text>
+        <Text>ローディングエラー: IPアドレスの設定を確認してください</Text>
       </View>
     );
   } else {
