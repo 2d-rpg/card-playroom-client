@@ -150,11 +150,14 @@ export default function EditDeckScreen({
         velocityThreshold: 0.3,
         directionalOffsetThreshold: 80,
       };
-      // 下スワイプでローカルのデッキにカードを追加
+      // TODO 裏面表示(上スワイプ?)
+      // TODO 拡大表示(長押し？)
       // TODO アニメーション
+      // TODO カード追加時に追加したカードをフォーカスする
+      // 下スワイプでローカルのデッキにカードを追加
       const onSwipeDown = () => {
         if (tempCardIds != null && localDeckId != null) {
-          const copyTempDeckCardIds = [...tempCardIds, item.cardId];
+          const copyTempDeckCardIds = [...tempCardIds, item.cardId].sort();
           setTempCardIds(copyTempDeckCardIds);
         }
       };
@@ -167,14 +170,15 @@ export default function EditDeckScreen({
 
     // ローカルのデッキのカードの描画
     // TODO 同じカードの描画の際カード下に枚数を表示
-    // TODO カードの並べ替え，ソートをできるようにする
     const renderLocalDeckItem = ({ item }: { item: renderedCard }) => {
       const config = {
         velocityThreshold: 0.3,
         directionalOffsetThreshold: 80,
       };
-      // 上スワイプでローカルのデッキからカードを削除
+      // TODO 裏面表示(上スワイプ?)
+      // TODO 拡大表示(長押し？)
       // TODO アニメーション
+      // 上スワイプでローカルのデッキからカードを削除
       const onSwipeUp = () => {
         if (tempCardIds != null) {
           const copyTempDeckCardIds = Array.from(tempCardIds);
