@@ -15,6 +15,7 @@
     "@react-navigation/native": "^5.7.6",
     "@react-navigation/stack": "^5.9.3",
     "@types/react-native-dialog": "^5.6.2",
+    "babel-plugin-dotenv-import": "^2.1.0",
     "expo": "~39.0.2",
     "expo-status-bar": "~1.0.2",
     "graphql": "^15.4.0",

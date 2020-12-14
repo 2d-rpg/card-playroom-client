@@ -77,14 +77,20 @@ export default function EditDeckScreen({
   }, []);
   useEffect(() => {
     console.log(cardsQueryResult.loading);
-    if (!cardsQueryResult.loading) {
-      console.log(cardsQueryResult.data.cards);
-      const serverCards: {
-        id: number;
-        face: ImageProps;
-        back: ImageProps;
-      }[] = cardsQueryResult.data.cards;
-      setCards(serverCards);
+    if (cardsQueryResult != null && !cardsQueryResult.loading) {
+      if (cardsQueryResult.error != null) {
+        // TODO エラー処理
+        console.log(cardsQueryResult.error);
+      } else {
+        console.log(cardsQueryResult.error);
+        console.log(cardsQueryResult.data.cards);
+        const serverCards: {
+          id: number;
+          face: ImageProps;
+          back: ImageProps;
+        }[] = cardsQueryResult.data.cards;
+        setCards(serverCards);
+      }
     }
   }, [cardsQueryResult]);
 

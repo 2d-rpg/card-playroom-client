@@ -8,6 +8,7 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "strict": true,
+    "typeRoots": ["src/@types"],
     /* Experimental Options */
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true
