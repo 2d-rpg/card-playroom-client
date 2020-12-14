@@ -1,5 +1,6 @@
 import React, { ReactElement } from "react";
 import { Image } from "react-native";
+import { ENDPOINT } from "@env";
 
 export default function Card(props: {
   faceUrl: string;
@@ -13,7 +14,7 @@ export default function Card(props: {
         height: 150,
       }}
       source={{
-        uri: props.faceUrl,
+        uri: `http://${ENDPOINT}${props.faceUrl}`,
       }}
     />
   );
