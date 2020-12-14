@@ -160,7 +160,7 @@ export default function EditDeckScreen({
       };
       return (
         <GestureRecognizer onSwipeDown={() => onSwipeDown()} config={config}>
-          <Card faceUrl={item.facePath} backUrl={item.backPath} />
+          <Card facePath={item.facePath} backPath={item.backPath} />
         </GestureRecognizer>
       );
     };
@@ -187,7 +187,7 @@ export default function EditDeckScreen({
       };
       return (
         <GestureRecognizer onSwipeUp={() => onSwipeUp()} config={config}>
-          <Card faceUrl={item.facePath} backUrl={item.backPath} />
+          <Card facePath={item.facePath} backPath={item.backPath} />
         </GestureRecognizer>
       );
     };
@@ -305,8 +305,8 @@ export default function EditDeckScreen({
           return {
             id: index,
             cardId: cardId,
-            faceUrl: selectedCard.face,
-            backUrl: selectedCard.back,
+            facePath: selectedCard.face,
+            backPath: selectedCard.back,
           };
         });
         return (

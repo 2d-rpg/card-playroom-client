@@ -3,8 +3,8 @@ import { Image } from "react-native";
 import { ENDPOINT } from "@env";
 
 export default function Card(props: {
-  faceUrl: string;
-  backUrl: string;
+  facePath: string;
+  backPath: string;
 }): ReactElement {
   // TODO サイズ調整
   return (
@@ -14,7 +14,7 @@ export default function Card(props: {
         height: 150,
       }}
       source={{
-        uri: `http://${ENDPOINT}${props.faceUrl}`,
+        uri: `http://${ENDPOINT}${props.facePath}`,
       }}
     />
   );
