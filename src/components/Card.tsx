@@ -1,9 +1,9 @@
 import React, { ReactElement } from "react";
-import { Image, ImageProps } from "react-native";
+import { Image } from "react-native";
 
 export default function Card(props: {
-  faceUrl: ImageProps;
-  backUrl: ImageProps;
+  faceUrl: string;
+  backUrl: string;
 }): ReactElement {
   // TODO サイズ調整
   return (
@@ -12,7 +12,9 @@ export default function Card(props: {
         width: 102,
         height: 150,
       }}
-      source={props.faceUrl}
+      source={{
+        uri: props.faceUrl,
+      }}
     />
   );
 }

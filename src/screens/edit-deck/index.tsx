@@ -5,7 +5,6 @@ import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../../../App";
 import Card from "../../components/Card";
 import { Picker } from "@react-native-community/picker";
-import { ImageProps } from "react-native";
 import GestureRecognizer from "react-native-swipe-gestures";
 import {
   createConnection,
@@ -15,6 +14,7 @@ import {
 import { Deck } from "../../entities/Deck";
 import Dialog from "react-native-dialog";
 import { gql, useQuery } from "@apollo/client";
+import { ENDPOINT } from "@env";
 
 const CARDS_QUERY = gql`
   query {
@@ -26,11 +26,22 @@ const CARDS_QUERY = gql`
   }
 `;
 
+const DECKS_QUERY = gql`
+  query {
+    decksWithCards {
+      id
+      name
+      cardIds
+    }
+  }
+`;
+
 export default function EditDeckScreen({
   navigation,
 }: {
   navigation: EditDeckScreenNavigationProp;
 }): ReactElement {
+  // TODO カードとデッキのロードが終わってから描画
   const [serverDeckId, setServerDeckId] = useState<number | undefined>(
     undefined
   );
@@ -43,13 +54,14 @@ export default function EditDeckScreen({
     setChangeDeckNameDialogVisible,
   ] = useState(false);
   const [tempDeckName, setTempDeckName] = useState("");
+  const decksQueryResult = useQuery(DECKS_QUERY);
   const cardsQueryResult = useQuery(CARDS_QUERY);
   const [serverDecks, setServerDecks] = useState<Deck[]>([]);
   const [cards, setCards] = useState<
     {
       id: number;
-      face: ImageProps;
-      back: ImageProps;
+      face: string;
+      back: string;
     }[]
   >([]);
 
@@ -82,24 +94,36 @@ export default function EditDeckScreen({
         // TODO エラー処理
         console.log(cardsQueryResult.error);
       } else {
-        console.log(cardsQueryResult.error);
         console.log(cardsQueryResult.data.cards);
         const serverCards: {
           id: number;
-          face: ImageProps;
-          back: ImageProps;
+          face: string;
+          back: string;
         }[] = cardsQueryResult.data.cards;
         setCards(serverCards);
       }
     }
   }, [cardsQueryResult]);
+  useEffect(() => {
+    console.log(decksQueryResult.loading);
+    if (decksQueryResult != null && !decksQueryResult.loading) {
+      if (cardsQueryResult.error != null) {
+        // TODO エラー処理
+        console.log(decksQueryResult.error);
+      } else {
+        console.log(decksQueryResult.data.cardIds);
+        const serverDecks: Deck[] = decksQueryResult.data.cards;
+        setServerDecks(serverDecks);
+      }
+    }
+  }, [decksQueryResult]);
 
   // 表示カードの型
   type renderedCard = {
     id: number;
     cardId: number;
-    faceUrl: ImageProps;
-    backUrl: ImageProps;
+    faceUrl: string;
+    backUrl: string;
   };
 
   // TODO Rustサーバーからデッキをインポート
