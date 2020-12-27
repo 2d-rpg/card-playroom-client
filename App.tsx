@@ -6,25 +6,38 @@ import RoomScreen from "./src/screens/room/index";
 import RoomListScreen from "./src/screens/room-list/index";
 import EditDeckScreen from "./src/screens/edit-deck/index";
 import PreferencesScreen from "./src/screens/preferences/index";
+import { ENDPOINT } from "@env";
+import { ApolloClient, InMemoryCache, ApolloProvider } from "@apollo/client";
 import "reflect-metadata";
+
+const cache = new InMemoryCache();
+
+// TODO uriを設定画面から変更できるようにする
+const client = new ApolloClient({
+  cache: cache,
+  uri: `http://${ENDPOINT}/graphql`,
+  // defaultOptions: { watchQuery: { fetchPolicy: "cache-and-network" } },
+});
 
 export default function App(): ReactElement {
   return (
-    <NavigationContainer>
-      <Stack.Navigator
-        initialRouteName="Home"
-        screenOptions={{
-          headerStyle: { backgroundColor: "#706fd3" },
-          headerTintColor: "white",
-        }}
-      >
-        <Stack.Screen name="Home" component={HomeScreen} />
-        <Stack.Screen name="Room" component={RoomScreen} />
-        <Stack.Screen name="RoomList" component={RoomListScreen} />
-        <Stack.Screen name="EditDeck" component={EditDeckScreen} />
-        <Stack.Screen name="Preferences" component={PreferencesScreen} />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <ApolloProvider client={client}>
+      <NavigationContainer>
+        <Stack.Navigator
+          initialRouteName="Home"
+          screenOptions={{
+            headerStyle: { backgroundColor: "#706fd3" },
+            headerTintColor: "white",
+          }}
+        >
+          <Stack.Screen name="Home" component={HomeScreen} />
+          <Stack.Screen name="Room" component={RoomScreen} />
+          <Stack.Screen name="RoomList" component={RoomListScreen} />
+          <Stack.Screen name="EditDeck" component={EditDeckScreen} />
+          <Stack.Screen name="Preferences" component={PreferencesScreen} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </ApolloProvider>
   );
 }
 
