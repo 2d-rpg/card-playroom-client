@@ -1,21 +1,52 @@
-import { StatusBar } from "expo-status-bar";
 import React, { ReactElement } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { NavigationContainer } from "@react-navigation/native";
+import { createStackNavigator } from "@react-navigation/stack";
+import HomeScreen from "./src/screens/home/index";
+import RoomScreen from "./src/screens/room/index";
+import RoomListScreen from "./src/screens/room-list/index";
+import EditDeckScreen from "./src/screens/edit-deck/index";
+import PreferencesScreen from "./src/screens/preferences/index";
+import { ENDPOINT } from "@env";
+import { ApolloClient, InMemoryCache, ApolloProvider } from "@apollo/client";
+import "reflect-metadata";
+
+const cache = new InMemoryCache();
+
+// TODO uriを設定画面から変更できるようにする
+const client = new ApolloClient({
+  cache: cache,
+  uri: `http://${ENDPOINT}/graphql`,
+  // defaultOptions: { watchQuery: { fetchPolicy: "cache-and-network" } },
+});
 
 export default function App(): ReactElement {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <ApolloProvider client={client}>
+      <NavigationContainer>
+        <Stack.Navigator
+          initialRouteName="Home"
+          screenOptions={{
+            headerStyle: { backgroundColor: "#706fd3" },
+            headerTintColor: "white",
+          }}
+        >
+          <Stack.Screen name="Home" component={HomeScreen} />
+          <Stack.Screen name="Room" component={RoomScreen} />
+          <Stack.Screen name="RoomList" component={RoomListScreen} />
+          <Stack.Screen name="EditDeck" component={EditDeckScreen} />
+          <Stack.Screen name="Preferences" component={PreferencesScreen} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </ApolloProvider>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
+export type RootStackParamList = {
+  Home: undefined;
+  Room: undefined;
+  RoomList: undefined;
+  EditDeck: undefined;
+  Preferences: undefined;
+};
+
+const Stack = createStackNavigator();
