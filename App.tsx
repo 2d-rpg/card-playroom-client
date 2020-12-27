@@ -16,37 +16,17 @@ import {
   ApolloProvider,
 } from "@apollo/client";
 import { getMainDefinition } from "@apollo/client/utilities";
-import { WebSocketLink } from "@apollo/client/link/ws";
 import "reflect-metadata";
 
 const cache = new InMemoryCache();
 
-const httpLink = new HttpLink({
-  uri: "http" + ENDPOINT + ":8080/graphql",
+const link = new HttpLink({
+  uri: "http://" + ENDPOINT + "/graphql",
 });
-
-const wsLink = new WebSocketLink({
-  uri: "ws" + ENDPOINT + ":8080/graphql",
-  options: {
-    reconnect: true,
-  },
-});
-
-const splitLink = split(
-  ({ query }) => {
-    const definition = getMainDefinition(query);
-    return (
-      definition.kind === "OperationDefinition" &&
-      definition.operation === "subscription"
-    );
-  },
-  wsLink,
-  httpLink
-);
 
 const client = new ApolloClient({
-  cache: cache,
-  link: splitLink,
+  cache,
+  link,
   defaultOptions: { watchQuery: { fetchPolicy: "cache-and-network" } },
 });
 

@@ -10,16 +10,6 @@ import {
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RouteProp } from "@react-navigation/native";
 import { RootStackParamList } from "../../../App";
-import { gql, useSubscription } from "@apollo/client";
-
-const MOVE_SUBSCRIPTION = gql`
-  subscription OnMoved {
-    moved {
-      x
-      y
-    }
-  }
-`;
 
 export default function RoomScreen({
   route,
@@ -47,17 +37,12 @@ export default function RoomScreen({
     })
   ).current;
 
-  const {
-    data: { moved },
-    loading,
-  } = useSubscription(MOVE_SUBSCRIPTION);
-
   return (
     <View style={styles.container}>
       <Text style={styles.titleText}>Drag this box!</Text>
       <Animated.View
         style={{
-          transform: [{ translateX: moved.x }, { translateY: moved.y }],
+          transform: [{ translateX: pan.x }, { translateY: pan.y }],
         }}
         {...panResponder.panHandlers}
       >
