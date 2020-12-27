@@ -206,21 +206,21 @@ export default function EditDeckScreen({
     const onServerDeckPickerValueChanged = (itemValue: React.ReactText) => {
       // TODO おそらくApolloの影響でserverDeck.idがstringになり選択してもnoneになってしまっていた
       // TODO そのためserverDeckIdの型をstringにして対応し，numberで処理しているローカルのデッキ選択とは異なる
-      const selectedGroupId = itemValue.toString();
+      const selectedServerId = itemValue.toString();
       // 2回呼ばれる対策
-      if (selectedGroupId === serverDeckId) {
+      if (selectedServerId === serverDeckId) {
         return;
       }
-      if (selectedGroupId == "none" && serverDeckId == null) {
+      if (selectedServerId == "none" && serverDeckId == null) {
         return;
       }
-      if (selectedGroupId == "none") {
+      if (selectedServerId == "none") {
         setServerDeckId(undefined);
         setServerDeckCardIds([]);
       } else {
-        setServerDeckId(selectedGroupId);
+        setServerDeckId(selectedServerId);
         const selectedDeck = serverDecks.filter(
-          (serverDeck) => serverDeck.id == parseInt(selectedGroupId)
+          (serverDeck) => serverDeck.id == parseInt(selectedServerId)
         )[0];
         setServerDeckCardIds(selectedDeck.cardIds);
       }
@@ -274,7 +274,7 @@ export default function EditDeckScreen({
     };
 
     // ローカル/サーバー のデッキ選択のためのセレクトボックス
-    const cardGroupPicker = (
+    const deckPicker = (
       selectedId: number | string | undefined,
       onPickerValueChanged: (
         itemValue: React.ReactText,
@@ -303,7 +303,7 @@ export default function EditDeckScreen({
     };
 
     // ローカル/サーバー のカードをリスト表示
-    const cardGroupFlatList = (
+    const deckFlatList = (
       selectedId: number | string | undefined,
       cardIds: number[],
       renderItem: ({ item }: { item: renderedCard }) => JSX.Element
@@ -438,25 +438,13 @@ export default function EditDeckScreen({
       <View style={styles.container}>
         <Button title="デッキ編集完了" onPress={saveDeck} />
         <Text>カード一覧</Text>
-        {cardGroupPicker(
-          serverDeckId,
-          onServerDeckPickerValueChanged,
-          serverDecks
-        )}
-        {cardGroupFlatList(
-          serverDeckId,
-          serverDeckCardIds,
-          renderServerDeckItem
-        )}
+        {deckPicker(serverDeckId, onServerDeckPickerValueChanged, serverDecks)}
+        {deckFlatList(serverDeckId, serverDeckCardIds, renderServerDeckItem)}
         <Text>デッキ</Text>
         <Button title="新しいデッキ作成" onPress={createDeck} />
         {changeDeckNameButton(localDeckId)}
-        {cardGroupPicker(
-          localDeckId,
-          onLocalDeckPickerValueChanged,
-          localDecks
-        )}
-        {cardGroupFlatList(localDeckId, tempCardIds, renderLocalDeckItem)}
+        {deckPicker(localDeckId, onLocalDeckPickerValueChanged, localDecks)}
+        {deckFlatList(localDeckId, tempCardIds, renderLocalDeckItem)}
         {deckDeleteButton(localDeckId)}
         <StatusBar style="auto" />
       </View>
