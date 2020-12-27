@@ -15,7 +15,17 @@ import { Deck } from "../../entities/Deck";
 import Dialog from "react-native-dialog";
 import { gql, useQuery } from "@apollo/client";
 
-const CARDS_QUERY = gql`
+interface ServerCard {
+  id: number;
+  face: string;
+  back: string;
+}
+
+interface ServerCards {
+  cards: ServerCard[];
+}
+
+const GET_SERVER_CARDS = gql`
   query {
     cards {
       id
@@ -25,7 +35,10 @@ const CARDS_QUERY = gql`
   }
 `;
 
-const DECKS_QUERY = gql`
+interface ServerDecks {
+  decksWithCards: Deck[];
+}
+const GET_SERVER_DECKS = gql`
   query {
     decksWithCards {
       id
@@ -40,7 +53,7 @@ export default function EditDeckScreen({
 }: {
   navigation: EditDeckScreenNavigationProp;
 }): ReactElement {
-  const [serverDeckId, setServerDeckId] = useState<number | undefined>(
+  const [serverDeckId, setServerDeckId] = useState<string | undefined>(
     undefined
   );
   const [serverDeckCardIds, setServerDeckCardIds] = useState<number[]>([]);
@@ -52,8 +65,8 @@ export default function EditDeckScreen({
     setChangeDeckNameDialogVisible,
   ] = useState(false);
   const [tempDeckName, setTempDeckName] = useState("");
-  const decksQueryResult = useQuery(DECKS_QUERY);
-  const cardsQueryResult = useQuery(CARDS_QUERY);
+  const decksQueryResult = useQuery<ServerDecks>(GET_SERVER_DECKS);
+  const cardsQueryResult = useQuery<ServerCards>(GET_SERVER_CARDS);
   const [serverDecks, setServerDecks] = useState<Deck[]>([]);
   const [cards, setCards] = useState<
     {
@@ -90,12 +103,10 @@ export default function EditDeckScreen({
   useEffect(() => {
     if (cardsQueryResult != null && !cardsQueryResult.loading) {
       if (cardsQueryResult.error == null) {
-        const serverCards: {
-          id: number;
-          face: string;
-          back: string;
-        }[] = cardsQueryResult.data.cards;
-        setCards(serverCards);
+        const serverCards = cardsQueryResult.data?.cards;
+        if (serverCards != null) {
+          setCards(serverCards);
+        }
       }
     }
   }, [cardsQueryResult]);
@@ -103,8 +114,10 @@ export default function EditDeckScreen({
   useEffect(() => {
     if (decksQueryResult != null && !decksQueryResult.loading) {
       if (decksQueryResult.error == null) {
-        const serverDecks: Deck[] = decksQueryResult.data.decksWithCards;
-        setServerDecks(serverDecks);
+        const serverDecks = decksQueryResult.data?.decksWithCards;
+        if (serverDecks != null) {
+          setServerDecks(serverDecks);
+        }
       }
     }
   }, [decksQueryResult]);
@@ -191,22 +204,23 @@ export default function EditDeckScreen({
 
     // サーバーのデッキ選択処理
     const onServerDeckPickerValueChanged = (itemValue: React.ReactText) => {
-      const selectedGroupId = parseInt(itemValue.toString());
+      // TODO おそらくApolloの影響でserverDeck.idがstringになり選択してもnoneになってしまっていた
+      // TODO そのためserverDeckIdの型をstringにして対応し，numberで処理しているローカルのデッキ選択とは異なる
+      const selectedGroupId = itemValue.toString();
       // 2回呼ばれる対策
       if (selectedGroupId === serverDeckId) {
         return;
       }
-      if (Number.isNaN(selectedGroupId) && serverDeckId == null) {
+      if (selectedGroupId == "none" && serverDeckId == null) {
         return;
       }
-      if (Number.isNaN(selectedGroupId)) {
-        // TODO なぜか選択がリセットされるので暫定的に対処．ローカルのデッキ選択処理は問題ない？
-        // setServerDeckId(undefined);
-        // setServerDeckCardIds([]);
+      if (selectedGroupId == "none") {
+        setServerDeckId(undefined);
+        setServerDeckCardIds([]);
       } else {
         setServerDeckId(selectedGroupId);
         const selectedDeck = serverDecks.filter(
-          (serverDeck) => serverDeck.id == selectedGroupId
+          (serverDeck) => serverDeck.id == parseInt(selectedGroupId)
         )[0];
         setServerDeckCardIds(selectedDeck.cardIds);
       }
@@ -261,7 +275,7 @@ export default function EditDeckScreen({
 
     // ローカル/サーバー のデッキ選択のためのセレクトボックス
     const cardGroupPicker = (
-      selectedId: number | undefined,
+      selectedId: number | string | undefined,
       onPickerValueChanged: (
         itemValue: React.ReactText,
         itemIndex: number
@@ -290,7 +304,7 @@ export default function EditDeckScreen({
 
     // ローカル/サーバー のカードをリスト表示
     const cardGroupFlatList = (
-      selectedId: number | undefined,
+      selectedId: number | string | undefined,
       cardIds: number[],
       renderItem: ({ item }: { item: renderedCard }) => JSX.Element
     ) => {
