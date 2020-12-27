@@ -39,9 +39,6 @@ export default function CreateRoomScreen({
   const onSubmit = async (values: { name: string }) => {
     // データ送信
     console.log(values);
-    // WebSocket Start
-    const ws = new WebSocket(ENDPOINT + ":8080/ws");
-    ws.onmessage = (event) => {};
     createRoom({ variables: { name: values.name, player: "piypiyo" } });
   };
 

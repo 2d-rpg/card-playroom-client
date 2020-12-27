@@ -1,15 +1,9 @@
-import React, { ReactElement, useRef } from "react";
-import {
-  StyleSheet,
-  View,
-  Text,
-  Button,
-  Animated,
-  PanResponder,
-} from "react-native";
+import React, { ReactElement, useEffect, useRef, useState } from "react";
+import { StyleSheet, View, Text, Animated, PanResponder } from "react-native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RouteProp } from "@react-navigation/native";
 import { RootStackParamList } from "../../../App";
+import { ENDPOINT } from "@env";
 
 export default function RoomScreen({
   route,
@@ -33,9 +27,22 @@ export default function RoomScreen({
       }),
       onPanResponderRelease: () => {
         pan.flattenOffset();
+        socket.send(JSON.stringify(pan)); // ポジションをjsonとしてサーバに送信
       },
     })
   ).current;
+
+  // Websocket
+  const socket = new WebSocket(`ws://${ENDPOINT}/ws`);
+
+  // イベント受け取り
+  socket.onmessage = (event) => {
+    console.log("received event:" + event.data);
+    if (event.data.startsWith("{")) {
+      const data = JSON.parse(event.data); // TODO サーバ側ですべてjson parsable になるよう実装
+      pan.setValue({ x: data.x, y: data.y });
+    }
+  };
 
   return (
     <View style={styles.container}>
