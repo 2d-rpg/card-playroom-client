@@ -8,26 +8,16 @@ import RoomListScreen from "./src/screens/room-list/index";
 import EditDeckScreen from "./src/screens/edit-deck/index";
 import PreferencesScreen from "./src/screens/preferences/index";
 import { ENDPOINT } from "@env";
-import {
-  ApolloClient,
-  HttpLink,
-  split,
-  InMemoryCache,
-  ApolloProvider,
-} from "@apollo/client";
-import { getMainDefinition } from "@apollo/client/utilities";
+import { ApolloClient, InMemoryCache, ApolloProvider } from "@apollo/client";
 import "reflect-metadata";
 
 const cache = new InMemoryCache();
 
-const link = new HttpLink({
-  uri: "http://" + ENDPOINT + "/graphql",
-});
-
+// TODO uriを設定画面から変更できるようにする
 const client = new ApolloClient({
-  cache,
-  link,
-  defaultOptions: { watchQuery: { fetchPolicy: "cache-and-network" } },
+  cache: cache,
+  uri: `http://${ENDPOINT}/graphql`,
+  // defaultOptions: { watchQuery: { fetchPolicy: "cache-and-network" } },
 });
 
 export default function App(): ReactElement {

@@ -1,7 +1,6 @@
 module.exports = function (api) {
   api.cache(true);
   return {
-    // pluginsに必要な情報を追記
     plugins: [
       [
         "dotenv-import",
