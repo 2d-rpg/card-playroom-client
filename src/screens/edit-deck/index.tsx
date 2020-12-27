@@ -14,6 +14,7 @@ import {
 import { Deck } from "../../entities/Deck";
 import Dialog from "react-native-dialog";
 import { gql, useQuery } from "@apollo/client";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface ServerCard {
   id: number;
@@ -75,28 +76,30 @@ export default function EditDeckScreen({
       back: string;
     }[]
   >([]);
+  const [endpoint, setEndPoint] = useState<string>("127.0.0.1");
 
-  // 最初にローカルに保存されているデッキをロード
+  // 最初にローカルに保存されているデッキをロードし，エンドポイントをセット
   useEffect(() => {
-    function connect() {
-      return createConnection({
-        database: "test",
-        driver: require("expo-sqlite"),
-        entities: [Deck],
-        synchronize: true,
-        type: "expo",
-      });
-    }
-    async function loadDecks() {
+    (async () => {
       const connectionManager = getConnectionManager();
       if (connectionManager.connections.length == 0) {
-        await connect();
+        await createConnection({
+          database: "test",
+          driver: require("expo-sqlite"),
+          entities: [Deck],
+          synchronize: true,
+          type: "expo",
+        });
       }
       const deckRepository = getRepository(Deck);
       const loadedDecks = await deckRepository.find();
       setLocalDecks(loadedDecks);
-    }
-    loadDecks();
+
+      const endpointFromPreferences = await AsyncStorage.getItem("@endpoint");
+      if (endpointFromPreferences != null) {
+        setEndPoint(endpointFromPreferences);
+      }
+    })();
   }, []);
   // TODO キャッシュのせいでデータが古い可能性があるのでキャッシュを無視する更新ボタンが欲しい
   // カードをサーバーからロード
@@ -136,6 +139,12 @@ export default function EditDeckScreen({
     );
   } else if (cardsQueryResult.error != null || decksQueryResult.error != null) {
     // TODO エラー処理を豪華にする
+    if (cardsQueryResult.error != null) {
+      console.log(`cardsQueryResult.error: ${cardsQueryResult.error}`);
+    }
+    if (decksQueryResult.error != null) {
+      console.log(`decksQueryResult.error: ${decksQueryResult.error}`);
+    }
     return (
       <View style={styles.container}>
         <Text>ローディングエラー: IPアドレスの設定を確認してください</Text>
@@ -169,7 +178,11 @@ export default function EditDeckScreen({
       };
       return (
         <GestureRecognizer onSwipeDown={() => onSwipeDown()} config={config}>
-          <Card facePath={item.facePath} backPath={item.backPath} />
+          <Card
+            facePath={item.facePath}
+            backPath={item.backPath}
+            endpoint={endpoint}
+          />
         </GestureRecognizer>
       );
     };
@@ -197,7 +210,11 @@ export default function EditDeckScreen({
       };
       return (
         <GestureRecognizer onSwipeUp={() => onSwipeUp()} config={config}>
-          <Card facePath={item.facePath} backPath={item.backPath} />
+          <Card
+            facePath={item.facePath}
+            backPath={item.backPath}
+            endpoint={endpoint}
+          />
         </GestureRecognizer>
       );
     };
