@@ -1,8 +1,9 @@
 import { StatusBar } from "expo-status-bar";
 import React, { ReactElement } from "react";
-import { StyleSheet, View, Text, Button } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../../../App";
+import { Button } from "react-native-elements";
 
 export default function HomeScreen({
   navigation,
@@ -11,12 +12,11 @@ export default function HomeScreen({
 }): ReactElement {
   return (
     <View style={styles.container}>
-      <Text>Home Screen</Text>
       <View style={styles.buttons}>
         <View style={styles.button}>
           <Button
             title="ルーム作成"
-            onPress={() => navigation.navigate("Room")}
+            onPress={() => navigation.navigate("CreateRoom")}
           />
         </View>
         <View style={styles.button}>
