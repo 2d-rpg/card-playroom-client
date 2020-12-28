@@ -38,7 +38,7 @@ export default function RoomListScreen({
   const [enterRoom] = useMutation(ENTER_ROOM, {
     onCompleted: (data) => {
       console.log(data.enterRoom.id);
-      navigation.navigate("Room", { id: data.enterRoom.id }); // TODO
+      navigation.navigate("Room", { id: data.enterRoom.id });
     },
   });
 
