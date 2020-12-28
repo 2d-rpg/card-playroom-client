@@ -57,15 +57,6 @@ export default function RoomScreen({
       </Animated.View>
     </View>
   );
-  // return (
-  //   <View style={styles.container}>
-  //     <Text>Room Screen</Text>
-  //     <Button
-  //       title="ホーム画面へ戻る"
-  //       onPress={() => navigation.navigate("Home")}
-  //     />
-  //   </View>
-  // );
 }
 
 type RoomScreenRouteProp = RouteProp<RootStackParamList, "Room">;
