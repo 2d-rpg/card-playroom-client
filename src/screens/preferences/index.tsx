@@ -5,7 +5,7 @@ import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../../../App";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export const DEFAULT_ENDPOINT = "127.0.0.1";
+const DEFAULT_ENDPOINT = "127.0.0.1";
 
 export default function PreferencesScreen({
   navigation,
@@ -36,6 +36,7 @@ export default function PreferencesScreen({
       }
     })();
   }, [endpoint]);
+  // TODO サーバーと接続できているか確認するボタンの実装
   return (
     <View style={styles.container}>
       <Text>Setting Screen</Text>
