@@ -1,17 +1,13 @@
 import { StatusBar } from "expo-status-bar";
 import React, { ReactElement, useState, useEffect } from "react";
 import { StyleSheet, View, Text, TextInput } from "react-native";
-import { StackNavigationProp } from "@react-navigation/stack";
-import { RootStackParamList } from "../../../App";
+// import { StackNavigationProp } from "@react-navigation/stack";
+// import { RootStackParamList } from "../../../App";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const DEFAULT_ENDPOINT = "127.0.0.1";
 
-export default function PreferencesScreen({
-  navigation,
-}: {
-  navigation: PreferencesScreenNavigationProp;
-}): ReactElement {
+export default function PreferencesScreen(): ReactElement {
   const [endpoint, setEndpoint] = useState(DEFAULT_ENDPOINT);
   useEffect(() => {
     (async () => {
@@ -55,10 +51,10 @@ export default function PreferencesScreen({
   );
 }
 
-type PreferencesScreenNavigationProp = StackNavigationProp<
-  RootStackParamList,
-  "Preferences"
->;
+// type PreferencesScreenNavigationProp = StackNavigationProp<
+//   RootStackParamList,
+//   "Preferences"
+// >;
 
 const styles = StyleSheet.create({
   container: {

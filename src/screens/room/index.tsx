@@ -1,17 +1,11 @@
-import React, { ReactElement, useRef, useState, useEffect } from "react";
+import React, { ReactElement, useRef, useEffect } from "react";
 import { StyleSheet, View, Text, Animated, PanResponder } from "react-native";
-import { StackNavigationProp } from "@react-navigation/stack";
-import { RouteProp } from "@react-navigation/native";
-import { RootStackParamList } from "../../../App";
+// import { StackNavigationProp } from "@react-navigation/stack";
+// import { RouteProp } from "@react-navigation/native";
+// import { RootStackParamList } from "../../../App";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export default function RoomScreen({
-  route,
-  navigation,
-}: {
-  route: RoomScreenRouteProp;
-  navigation: RoomScreenNavigationProp;
-}): ReactElement {
+export default function RoomScreen(): ReactElement {
   const pan = useRef(new Animated.ValueXY()).current;
   const socket = useRef<WebSocket | null>(null);
   const panResponder = useRef(
@@ -46,9 +40,9 @@ export default function RoomScreen({
       try {
         const endpointFromPreferences = await AsyncStorage.getItem("@endpoint");
         if (endpointFromPreferences != null) {
-          socket.current = new WebSocket("ws://127.0.0.1/ws");
-        } else {
           socket.current = new WebSocket(`ws://${endpointFromPreferences}/ws`);
+        } else {
+          socket.current = new WebSocket("ws://127.0.0.1/ws");
         }
         // イベント受け取り
         socket.current.onmessage = (event) => {
@@ -82,8 +76,8 @@ export default function RoomScreen({
   );
 }
 
-type RoomScreenRouteProp = RouteProp<RootStackParamList, "Room">;
-type RoomScreenNavigationProp = StackNavigationProp<RootStackParamList, "Room">;
+// type RoomScreenRouteProp = RouteProp<RootStackParamList, "Room">;
+// type RoomScreenNavigationProp = StackNavigationProp<RootStackParamList, "Room">;
 
 const styles = StyleSheet.create({
   container: {
