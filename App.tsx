@@ -16,7 +16,6 @@ import {
 import "reflect-metadata";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-// TODO uriを設定画面から変更できるようにする
 const customFetch = async (uri: string, options: RequestInit) => {
   try {
     const endpoint = await AsyncStorage.getItem("@endpoint");
@@ -35,7 +34,6 @@ const client = new ApolloClient({
   cache: new InMemoryCache(),
   link: new HttpLink({ fetch: customFetch }),
   uri: "/graphql",
-  // defaultOptions: { watchQuery: { fetchPolicy: "cache-and-network" } },
 });
 
 export default function App(): ReactElement {
