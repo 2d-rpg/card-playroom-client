@@ -19,7 +19,9 @@ export default function RoomScreen({
       onMoveShouldSetPanResponder: () => true,
       onPanResponderGrant: () => {
         // pan.x: Animated.value には_valueプロパティが見つからないため
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const panX = pan.x as any;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const panY = pan.y as any;
         pan.setOffset({
           x: panX._value,
