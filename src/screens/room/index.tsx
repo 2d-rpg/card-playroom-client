@@ -33,7 +33,6 @@ export default function RoomScreen({
       }),
       onPanResponderRelease: () => {
         pan.flattenOffset();
-        console.log(socket.current);
         if (socket.current != null) {
           // ポジションをjsonとしてサーバに送信
           socket.current.send(JSON.stringify(pan));
@@ -47,18 +46,19 @@ export default function RoomScreen({
       try {
         const endpointFromPreferences = await AsyncStorage.getItem("@endpoint");
         if (endpointFromPreferences != null) {
+          socket.current = new WebSocket("ws://127.0.0.1/ws");
+        } else {
           socket.current = new WebSocket(`ws://${endpointFromPreferences}/ws`);
-          // イベント受け取り
-          console.log(socket.current);
-          socket.current.onmessage = (event) => {
-            console.log("received event:" + event.data);
-            if (event.data.startsWith("{")) {
-              // TODO サーバ側ですべてjson parsableになるよう実装
-              const data = JSON.parse(event.data);
-              pan.setValue({ x: data.x, y: data.y });
-            }
-          };
         }
+        // イベント受け取り
+        socket.current.onmessage = (event) => {
+          console.log("received event:" + event.data);
+          if (event.data.startsWith("{")) {
+            // TODO サーバ側ですべてjson parsableになるよう実装
+            const data = JSON.parse(event.data);
+            pan.setValue({ x: data.x, y: data.y });
+          }
+        };
       } catch (error) {
         // 設定読み込みエラー
         console.log(error);
