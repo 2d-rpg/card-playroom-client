@@ -39,10 +39,10 @@ export default function RoomScreen(): ReactElement {
     (async () => {
       try {
         const endpointFromPreferences = await AsyncStorage.getItem("@endpoint");
-        if (endpointFromPreferences != null) {
-          socket.current = new WebSocket(`ws://${endpointFromPreferences}/ws`);
-        } else {
+        if (endpointFromPreferences == null) {
           socket.current = new WebSocket("ws://127.0.0.1/ws");
+        } else {
+          socket.current = new WebSocket(`ws://${endpointFromPreferences}/ws`);
         }
         // イベント受け取り
         socket.current.onmessage = (event) => {
