@@ -1,9 +1,10 @@
-import React, { ReactElement, useRef } from "react";
+import React, { ReactElement, useRef, useState, useEffect } from "react";
 import { StyleSheet, View, Text, Animated, PanResponder } from "react-native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RouteProp } from "@react-navigation/native";
 import { RootStackParamList } from "../../../App";
 import { DEFAULT_ENDPOINT } from "../preferences";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function RoomScreen({
   route,
@@ -17,9 +18,12 @@ export default function RoomScreen({
     PanResponder.create({
       onMoveShouldSetPanResponder: () => true,
       onPanResponderGrant: () => {
+        // pan.x: Animated.value には_valueプロパティが見つからないため
+        const panX = pan.x as any;
+        const panY = pan.y as any;
         pan.setOffset({
-          x: pan.x._value,
-          y: pan.y._value,
+          x: panX._value,
+          y: panY._value,
         });
       },
       onPanResponderMove: Animated.event([null, { dx: pan.x, dy: pan.y }], {
