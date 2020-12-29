@@ -3,6 +3,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import HomeScreen from "./src/screens/home/index";
 import RoomScreen from "./src/screens/room/index";
+import CreateRoomScreen from "./src/screens/create-room/index";
 import RoomListScreen from "./src/screens/room-list/index";
 import EditDeckScreen from "./src/screens/edit-deck/index";
 import PreferencesScreen from "./src/screens/preferences/index";
@@ -50,6 +51,7 @@ export default function App(): ReactElement {
         >
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="Room" component={RoomScreen} />
+          <Stack.Screen name="CreateRoom" component={CreateRoomScreen} />
           <Stack.Screen name="RoomList" component={RoomListScreen} />
           <Stack.Screen name="EditDeck" component={EditDeckScreen} />
           <Stack.Screen name="Preferences" component={PreferencesScreen} />
@@ -61,7 +63,8 @@ export default function App(): ReactElement {
 
 export type RootStackParamList = {
   Home: undefined;
-  Room: undefined;
+  Room: { id: number };
+  CreateRoom: undefined;
   RoomList: undefined;
   EditDeck: undefined;
   Preferences: undefined;

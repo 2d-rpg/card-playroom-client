@@ -5,12 +5,14 @@ import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../../../App";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+export const DEFAULT_ENDPOINT = "127.0.0.1";
+
 export default function PreferencesScreen({
   navigation,
 }: {
   navigation: PreferencesScreenNavigationProp;
 }): ReactElement {
-  const [endpoint, setEndpoint] = useState("127.0.0.1");
+  const [endpoint, setEndpoint] = useState(DEFAULT_ENDPOINT);
   useEffect(() => {
     (async () => {
       try {
