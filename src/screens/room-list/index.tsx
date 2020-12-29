@@ -3,7 +3,6 @@ import { StyleSheet, View, FlatList, ActivityIndicator } from "react-native";
 import { SearchBar, ListItem } from "react-native-elements";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../../../App";
-import { ENDPOINT } from "@env";
 import { gql, useQuery, useMutation } from "@apollo/client";
 
 const ROOMS_QUERY = gql`

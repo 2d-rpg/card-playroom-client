@@ -1,25 +1,25 @@
-import React, { ReactElement, useEffect, useRef, useState } from "react";
+import React, { ReactElement, useRef, useEffect } from "react";
 import { StyleSheet, View, Text, Animated, PanResponder } from "react-native";
-import { StackNavigationProp } from "@react-navigation/stack";
-import { RouteProp } from "@react-navigation/native";
-import { RootStackParamList } from "../../../App";
-import { ENDPOINT } from "@env";
+// import { StackNavigationProp } from "@react-navigation/stack";
+// import { RouteProp } from "@react-navigation/native";
+// import { RootStackParamList } from "../../../App";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export default function RoomScreen({
-  route,
-  navigation,
-}: {
-  route: RoomScreenRouteProp;
-  navigation: RoomScreenNavigationProp;
-}): ReactElement {
+export default function RoomScreen(): ReactElement {
   const pan = useRef(new Animated.ValueXY()).current;
+  const socket = useRef<WebSocket | null>(null);
   const panResponder = useRef(
     PanResponder.create({
       onMoveShouldSetPanResponder: () => true,
       onPanResponderGrant: () => {
+        // pan.x: Animated.value には_valueプロパティが見つからないため
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const panX = pan.x as any;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const panY = pan.y as any;
         pan.setOffset({
-          x: pan.x._value,
-          y: pan.y._value,
+          x: panX._value,
+          y: panY._value,
         });
       },
       onPanResponderMove: Animated.event([null, { dx: pan.x, dy: pan.y }], {
@@ -27,23 +27,40 @@ export default function RoomScreen({
       }),
       onPanResponderRelease: () => {
         pan.flattenOffset();
-        socket.send(JSON.stringify(pan)); // ポジションをjsonとしてサーバに送信
+        if (socket.current != null) {
+          // ポジションをjsonとしてサーバに送信
+          socket.current.send(JSON.stringify(pan));
+        }
       },
     })
   ).current;
 
-  // Websocket
-  const socket = new WebSocket(`ws://${ENDPOINT}/ws`);
+  useEffect(() => {
+    (async () => {
+      try {
+        const endpointFromPreferences = await AsyncStorage.getItem("@endpoint");
+        if (endpointFromPreferences == null) {
+          socket.current = new WebSocket("ws://127.0.0.1/ws");
+        } else {
+          socket.current = new WebSocket(`ws://${endpointFromPreferences}/ws`);
+        }
+        // イベント受け取り
+        socket.current.onmessage = (event) => {
+          console.log("received event:" + event.data);
+          if (event.data.startsWith("{")) {
+            // TODO サーバ側ですべてjson parsableになるよう実装
+            const data = JSON.parse(event.data);
+            pan.setValue({ x: data.x, y: data.y });
+          }
+        };
+      } catch (error) {
+        // 設定読み込みエラー
+        console.log(error);
+      }
+    })();
+  }, []);
 
-  // イベント受け取り
-  socket.onmessage = (event) => {
-    console.log("received event:" + event.data);
-    if (event.data.startsWith("{")) {
-      const data = JSON.parse(event.data); // TODO サーバ側ですべてjson parsable になるよう実装
-      pan.setValue({ x: data.x, y: data.y });
-    }
-  };
-
+  // TODO WebSocket接続エラーの対応
   return (
     <View style={styles.container}>
       <Text style={styles.titleText}>Drag this box!</Text>
@@ -59,8 +76,8 @@ export default function RoomScreen({
   );
 }
 
-type RoomScreenRouteProp = RouteProp<RootStackParamList, "Room">;
-type RoomScreenNavigationProp = StackNavigationProp<RootStackParamList, "Room">;
+// type RoomScreenRouteProp = RouteProp<RootStackParamList, "Room">;
+// type RoomScreenNavigationProp = StackNavigationProp<RootStackParamList, "Room">;
 
 const styles = StyleSheet.create({
   container: {

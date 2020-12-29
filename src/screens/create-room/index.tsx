@@ -12,7 +12,6 @@ import { RootStackParamList } from "../../../App";
 import { gql, useMutation } from "@apollo/client";
 import { Formik } from "formik";
 import * as Yup from "yup";
-import { ENDPOINT } from "@env";
 
 const CREATE_ROOM = gql`
   mutation CreateRoom($name: String!, $player: String!) {
@@ -32,7 +31,7 @@ export default function CreateRoomScreen({
   const [createRoom] = useMutation(CREATE_ROOM, {
     onCompleted: (data) => {
       console.log(data.createRoom.id);
-      navigation.navigate("Room", { id: data.createRoom.id }); // TODO
+      navigation.navigate("Room", { id: data.createRoom.id });
     },
   });
 

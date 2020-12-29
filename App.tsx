@@ -7,17 +7,33 @@ import CreateRoomScreen from "./src/screens/create-room/index";
 import RoomListScreen from "./src/screens/room-list/index";
 import EditDeckScreen from "./src/screens/edit-deck/index";
 import PreferencesScreen from "./src/screens/preferences/index";
-import { ENDPOINT } from "@env";
-import { ApolloClient, InMemoryCache, ApolloProvider } from "@apollo/client";
+import {
+  ApolloClient,
+  InMemoryCache,
+  ApolloProvider,
+  HttpLink,
+} from "@apollo/client";
 import "reflect-metadata";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const cache = new InMemoryCache();
-
-// TODO uriを設定画面から変更できるようにする
+const customFetch = async (uri: string, options: RequestInit) => {
+  try {
+    const endpoint = await AsyncStorage.getItem("@endpoint");
+    if (endpoint == null) {
+      return fetch(`http://127.0.0.1${uri}`, options);
+    } else {
+      return fetch(`http://${endpoint}${uri}`, options);
+    }
+  } catch (error) {
+    // 設定読み込みエラー
+    console.log(error);
+    return fetch(`http://127.0.0.1${uri}`, options);
+  }
+};
 const client = new ApolloClient({
-  cache: cache,
-  uri: `http://${ENDPOINT}/graphql`,
-  // defaultOptions: { watchQuery: { fetchPolicy: "cache-and-network" } },
+  cache: new InMemoryCache(),
+  link: new HttpLink({ fetch: customFetch }),
+  uri: "/graphql",
 });
 
 export default function App(): ReactElement {
