@@ -1,6 +1,6 @@
 import { StatusBar } from "expo-status-bar";
 import React, { ReactElement, useState, useEffect } from "react";
-import { StyleSheet, View, Text, Button, FlatList } from "react-native";
+import { StyleSheet, View, Text, FlatList } from "react-native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../../../App";
 import Card from "../../components/Card";
@@ -15,6 +15,7 @@ import { Deck } from "../../entities/Deck";
 import Dialog from "react-native-dialog";
 import { gql, useQuery } from "@apollo/client";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Button } from "react-native-elements";
 
 interface ServerCard {
   id: number;
