@@ -12,7 +12,6 @@ import RoomScreen from "./src/screens/room/index";
 import CreateRoomScreen from "./src/screens/create-room/index";
 import RoomListScreen from "./src/screens/room-list/index";
 import EditDeckScreen from "./src/screens/edit-deck/index";
-import PreferencesScreen from "./src/screens/preferences/index";
 import {
   ApolloClient,
   InMemoryCache,
@@ -21,6 +20,7 @@ import {
 } from "@apollo/client";
 import "reflect-metadata";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Icon } from "react-native-elements";
 
 const customFetch = async (uri: string, options: RequestInit) => {
   try {
@@ -55,6 +55,7 @@ export default function App(): ReactElement {
           }}
         >
           <Stack.Screen
+            // TODO 名前変更
             name="Home"
             options={({ route }) => ({
               headerTitle: getHeaderTitle(route),
@@ -62,9 +63,27 @@ export default function App(): ReactElement {
           >
             {() => (
               <Tab.Navigator initialRouteName="Home">
-                <Tab.Screen name="Home" component={HomeScreen} />
-                <Tab.Screen name="RoomList" component={RoomListScreen} />
-                <Tab.Screen name="EditDeck" component={EditDeckScreen} />
+                <Tab.Screen
+                  name="Home"
+                  component={HomeScreen}
+                  options={{
+                    tabBarIcon: homeIcon,
+                  }}
+                />
+                <Tab.Screen
+                  name="RoomList"
+                  component={RoomListScreen}
+                  options={{
+                    tabBarIcon: roomListIcon,
+                  }}
+                />
+                <Tab.Screen
+                  name="EditDeck"
+                  component={EditDeckScreen}
+                  options={{
+                    tabBarIcon: editDeckIcon,
+                  }}
+                />
               </Tab.Navigator>
             )}
           </Stack.Screen>
@@ -98,4 +117,16 @@ const getHeaderTitle = (route: RouteProp<ParamListBase, "Home">) => {
     default:
       return routeName;
   }
+};
+
+const homeIcon = ({ color, size }: { color: string; size: number }) => {
+  return <Icon name="home" color={color} size={size} />;
+};
+
+const roomListIcon = ({ color, size }: { color: string; size: number }) => {
+  return <Icon name="meeting-room" color={color} size={size} />;
+};
+
+const editDeckIcon = ({ color, size }: { color: string; size: number }) => {
+  return <Icon name="edit" color={color} size={size} />;
 };

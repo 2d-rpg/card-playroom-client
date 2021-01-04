@@ -1,7 +1,8 @@
 import { StatusBar } from "expo-status-bar";
 import React, { ReactElement, useState, useEffect } from "react";
-import { StyleSheet, View, Text, TextInput } from "react-native";
+import { StyleSheet, View, TextInput } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Text } from "react-native-elements";
 
 const DEFAULT_ENDPOINT = "127.0.0.1";
 export default function HomeScreen(): ReactElement {
@@ -32,7 +33,6 @@ export default function HomeScreen(): ReactElement {
   // TODO サーバーと接続できているか確認するボタンの実装
   return (
     <View style={styles.container}>
-      <Text>Setting Screen</Text>
       <Text>サーバーアドレス</Text>
       <TextInput
         style={{
