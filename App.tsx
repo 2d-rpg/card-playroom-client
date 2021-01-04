@@ -71,7 +71,6 @@ export default function App(): ReactElement {
 
           <Stack.Screen name="Room" component={RoomScreen} />
           <Stack.Screen name="CreateRoom" component={CreateRoomScreen} />
-          <Stack.Screen name="Preferences" component={PreferencesScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </ApolloProvider>
