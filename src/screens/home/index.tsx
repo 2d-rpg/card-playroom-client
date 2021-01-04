@@ -2,8 +2,6 @@ import { StatusBar } from "expo-status-bar";
 import React, { ReactElement, useState, useEffect } from "react";
 import { StyleSheet, View, Text, TextInput } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { StackNavigationProp } from "@react-navigation/stack";
-import { RootStackParamList } from "../../../App";
 
 const DEFAULT_ENDPOINT = "127.0.0.1";
 export default function HomeScreen(): ReactElement {

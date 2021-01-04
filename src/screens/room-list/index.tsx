@@ -1,9 +1,16 @@
 import React, { ReactElement, useState, useEffect } from "react";
-import { StyleSheet, View, FlatList, ActivityIndicator } from "react-native";
+import {
+  StyleSheet,
+  View,
+  FlatList,
+  ActivityIndicator,
+  Text,
+} from "react-native";
 import { SearchBar, ListItem } from "react-native-elements";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../../../App";
 import { gql, useQuery, useMutation } from "@apollo/client";
+import { TouchableOpacity } from "react-native";
 
 const ROOMS_QUERY = gql`
   query {
@@ -84,7 +91,7 @@ export default function RoomListScreen({
   if (error) console.log(error.message);
 
   return (
-    <View>
+    <View style={styles.container}>
       <SearchBar
         placeholder="ルーム検索"
         lightTheme
@@ -101,6 +108,12 @@ export default function RoomListScreen({
           renderItem={renderItem}
         />
       )}
+      <TouchableOpacity
+        onPress={() => navigation.navigate("CreateRoom")}
+        style={styles.fab}
+      >
+        <Text style={styles.fabIcon}>+</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -111,6 +124,9 @@ type RoomListScreenNavigationProp = StackNavigationProp<
 >;
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
   title: {
     fontSize: 30,
     fontWeight: "400",
@@ -121,5 +137,19 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
     paddingTop: 5,
     color: "gray",
+  },
+  fab: {
+    position: "absolute",
+    width: 56,
+    height: 56,
+    alignItems: "center",
+    backgroundColor: "#03A9F4",
+    right: 10,
+    bottom: 10,
+    borderRadius: 30,
+  },
+  fabIcon: {
+    fontSize: 40,
+    color: "white",
   },
 });
