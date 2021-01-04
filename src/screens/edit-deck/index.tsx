@@ -16,6 +16,7 @@ import Dialog from "react-native-dialog";
 import { gql, useQuery } from "@apollo/client";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Button } from "react-native-elements";
+import { useIsFocused } from "@react-navigation/native";
 
 interface ServerCard {
   id: number;
@@ -78,6 +79,7 @@ export default function EditDeckScreen({
     }[]
   >([]);
   const [endpoint, setEndPoint] = useState<string>("127.0.0.1");
+  const isFocused = useIsFocused();
 
   // 最初にローカルに保存されているデッキをロードし，エンドポイントをセット
   useEffect(() => {
@@ -101,7 +103,24 @@ export default function EditDeckScreen({
         setEndPoint(endpointFromPreferences);
       }
     })();
-  }, []);
+    // タブ切り替えでは再レンダリングが行われないのでこのタブがフォーカスされたときにクエリを再度投げる
+    if (isFocused) {
+      if (
+        cardsQueryResult != null &&
+        !cardsQueryResult.loading &&
+        cardsQueryResult.error != null
+      ) {
+        cardsQueryResult.refetch();
+      }
+      if (
+        decksQueryResult != null &&
+        !decksQueryResult.loading &&
+        decksQueryResult.error != null
+      ) {
+        decksQueryResult.refetch();
+      }
+    }
+  }, [isFocused]);
   // TODO キャッシュのせいでデータが古い可能性があるのでキャッシュを無視する更新ボタンが欲しい
   // カードをサーバーからロード
   useEffect(() => {
