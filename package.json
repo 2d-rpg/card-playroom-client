@@ -13,6 +13,7 @@
     "@react-native-async-storage/async-storage": "^1.13.2",
     "@react-native-community/masked-view": "0.1.10",
     "@react-native-community/picker": "1.6.6",
+    "@react-navigation/bottom-tabs": "^5.11.2",
     "@react-navigation/native": "^5.7.6",
     "@react-navigation/stack": "^5.9.3",
     "babel-plugin-dotenv-import": "^2.1.0",

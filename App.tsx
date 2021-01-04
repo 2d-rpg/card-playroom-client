@@ -1,6 +1,12 @@
 import React, { ReactElement } from "react";
-import { NavigationContainer } from "@react-navigation/native";
+import {
+  getFocusedRouteNameFromRoute,
+  NavigationContainer,
+  ParamListBase,
+  RouteProp,
+} from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import HomeScreen from "./src/screens/home/index";
 import RoomScreen from "./src/screens/room/index";
 import CreateRoomScreen from "./src/screens/create-room/index";
@@ -48,11 +54,23 @@ export default function App(): ReactElement {
             headerLeft: () => null,
           }}
         >
-          <Stack.Screen name="Home" component={HomeScreen} />
+          <Stack.Screen
+            name="Home"
+            options={({ route }) => ({
+              headerTitle: getHeaderTitle(route),
+            })}
+          >
+            {() => (
+              <Tab.Navigator initialRouteName="Home">
+                <Tab.Screen name="Home" component={HomeScreen} />
+                <Tab.Screen name="RoomList" component={RoomListScreen} />
+                <Tab.Screen name="EditDeck" component={EditDeckScreen} />
+              </Tab.Navigator>
+            )}
+          </Stack.Screen>
+
           <Stack.Screen name="Room" component={RoomScreen} />
           <Stack.Screen name="CreateRoom" component={CreateRoomScreen} />
-          <Stack.Screen name="RoomList" component={RoomListScreen} />
-          <Stack.Screen name="EditDeck" component={EditDeckScreen} />
           <Stack.Screen name="Preferences" component={PreferencesScreen} />
         </Stack.Navigator>
       </NavigationContainer>
@@ -70,3 +88,15 @@ export type RootStackParamList = {
 };
 
 const Stack = createStackNavigator();
+const Tab = createBottomTabNavigator();
+const getHeaderTitle = (route: RouteProp<ParamListBase, "Home">) => {
+  const routeName = getFocusedRouteNameFromRoute(route);
+  switch (routeName) {
+    case "RoomList":
+      return "RoomList";
+    case "EditDeck":
+      return "EditDeck";
+    default:
+      return routeName;
+  }
+};

@@ -3,6 +3,7 @@ import React, { ReactElement } from "react";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../../../App";
 import { Button, ThemeProvider, Text } from "react-native-elements";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const theme = {
   Button: {
