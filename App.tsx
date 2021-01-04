@@ -45,6 +45,7 @@ export default function App(): ReactElement {
           screenOptions={{
             headerStyle: { backgroundColor: "#706fd3" },
             headerTintColor: "white",
+            headerLeft: () => null,
           }}
         >
           <Stack.Screen name="Home" component={HomeScreen} />
