@@ -1,8 +1,6 @@
 import { StatusBar } from "expo-status-bar";
 import React, { ReactElement, useState, useEffect } from "react";
 import { StyleSheet, View, Text, FlatList } from "react-native";
-import { StackNavigationProp } from "@react-navigation/stack";
-import { RootStackParamList } from "../../../App";
 import Card from "../../components/Card";
 import { Picker } from "@react-native-community/picker";
 import GestureRecognizer from "react-native-swipe-gestures";
