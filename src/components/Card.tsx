@@ -10,7 +10,7 @@ export default function Card(props: {
   // TODO ズームイン，ズームアウト時の拡大縮小に対応
   // TODO 画像読み込み失敗時の対応
   const windowHeight = Dimensions.get("window").height;
-  const height = windowHeight * 0.2;
+  const height = windowHeight / 5;
   const width = (height * 2) / 3;
   console.log(windowHeight);
   return (
