@@ -353,6 +353,9 @@ export default function EditDeckScreen(): ReactElement {
         return <Text>選択してください</Text>;
       } else {
         const flatListItems = cardIds.map((cardId, index) => {
+          // ? filter()[0]は普通存在するが存在しない場合
+          // ? filter()[0]はundefinedになりうるので型安全でない
+          // ? 他のfilter[0]も同様
           const selectedCard = cards.filter((card) => card.id == cardId)[0];
           return {
             id: index,
