@@ -51,60 +51,71 @@ const GET_SERVER_DECKS = gql`
   }
 `;
 
-export default function EditDeckScreen({
-  navigation,
-}: {
-  navigation: EditDeckScreenNavigationProp;
-}): ReactElement {
+export default function EditDeckScreen(): ReactElement {
   const [serverDeckId, setServerDeckId] = useState<string | undefined>(
     undefined
   );
+  const [serverDecks, setServerDecks] = useState<Deck[]>([]);
   const [serverDeckCardIds, setServerDeckCardIds] = useState<number[]>([]);
+
   const [localDeckId, setLocalDeckId] = useState<number | undefined>(undefined);
-  const [tempCardIds, setTempCardIds] = useState<number[]>([]);
   const [localDecks, setLocalDecks] = useState<Deck[]>([]);
-  const [
-    changeDeckNameDialogVisible,
-    setChangeDeckNameDialogVisible,
-  ] = useState(false);
-  const [tempDeckName, setTempDeckName] = useState("");
+  const [localDeckCardIds, setLocalDeckCardIds] = useState<number[]>([]);
+
+  const [cards, setCards] = useState<ServerCard[]>([]);
+
+  const [isVisibleDeckNameDialog, setIsVisibleDeckNameDialog] = useState(false);
+  const [deckName, setDeckName] = useState("");
+
   const decksQueryResult = useQuery<ServerDecks>(GET_SERVER_DECKS);
   const cardsQueryResult = useQuery<ServerCards>(GET_SERVER_CARDS);
-  const [serverDecks, setServerDecks] = useState<Deck[]>([]);
-  const [cards, setCards] = useState<
-    {
-      id: number;
-      face: string;
-      back: string;
-    }[]
-  >([]);
+
+  const [reloadCount, setReloadCount] = useState(0);
   const [endpoint, setEndPoint] = useState<string>("127.0.0.1");
   const isFocused = useIsFocused();
 
+  const updateLocalDeck = async (
+    deckId: number | undefined,
+    cardIds: number[] | undefined
+  ) => {
+    const deckRepository = getRepository(Deck);
+    if (deckId != null && cardIds != null) {
+      await deckRepository.update({ id: deckId }, { cardIds: cardIds });
+    }
+    const loadedDecks = await deckRepository.find();
+    setLocalDecks(loadedDecks);
+  };
+
+  const reload = () => {
+    cardsQueryResult.refetch();
+    decksQueryResult.refetch();
+    setReloadCount(reloadCount + 1);
+  };
+
   // 最初にローカルに保存されているデッキをロードし，エンドポイントをセット
   useEffect(() => {
-    (async () => {
-      const connectionManager = getConnectionManager();
-      if (connectionManager.connections.length == 0) {
-        await createConnection({
-          database: "test",
-          driver: require("expo-sqlite"),
-          entities: [Deck],
-          synchronize: true,
-          type: "expo",
-        });
-      }
-      const deckRepository = getRepository(Deck);
-      const loadedDecks = await deckRepository.find();
-      setLocalDecks(loadedDecks);
-
-      const endpointFromPreferences = await AsyncStorage.getItem("@endpoint");
-      if (endpointFromPreferences != null) {
-        setEndPoint(endpointFromPreferences);
-      }
-    })();
     // タブ切り替えでは再レンダリングが行われないのでこのタブがフォーカスされたときにクエリを再度投げる
     if (isFocused) {
+      (async () => {
+        const connectionManager = getConnectionManager();
+        if (connectionManager.connections.length == 0) {
+          await createConnection({
+            database: "test",
+            driver: require("expo-sqlite"),
+            entities: [Deck],
+            synchronize: true,
+            type: "expo",
+          });
+        }
+        const deckRepository = getRepository(Deck);
+        const loadedDecks = await deckRepository.find();
+        setLocalDecks(loadedDecks);
+
+        const endpointFromPreferences = await AsyncStorage.getItem("@endpoint");
+        if (endpointFromPreferences != null) {
+          setEndPoint(endpointFromPreferences);
+        }
+      })();
       if (
         cardsQueryResult != null &&
         !cardsQueryResult.loading &&
@@ -132,7 +143,7 @@ export default function EditDeckScreen({
         }
       }
     }
-  }, [cardsQueryResult]);
+  }, [cardsQueryResult, reloadCount]);
   // デッキをサーバーからロード
   useEffect(() => {
     if (decksQueryResult != null && !decksQueryResult.loading) {
@@ -143,7 +154,14 @@ export default function EditDeckScreen({
         }
       }
     }
-  }, [decksQueryResult]);
+  }, [decksQueryResult, reloadCount]);
+
+  // リロード
+  useEffect(() => {
+    setServerDeckId(undefined);
+    setLocalDeckId(undefined);
+    setLocalDeckCardIds([]);
+  }, [reloadCount]);
 
   if (
     cardsQueryResult == null ||
@@ -190,10 +208,11 @@ export default function EditDeckScreen({
       // TODO アニメーション
       // TODO カード追加時に追加したカードをフォーカスする
       // 下スワイプでローカルのデッキにカードを追加
-      const onSwipeDown = () => {
-        if (tempCardIds != null && localDeckId != null) {
-          const copyTempDeckCardIds = [...tempCardIds, item.cardId].sort();
-          setTempCardIds(copyTempDeckCardIds);
+      const onSwipeDown = async () => {
+        if (localDeckCardIds != null && localDeckId != null) {
+          const copyTempDeckCardIds = [...localDeckCardIds, item.cardId].sort();
+          setLocalDeckCardIds(copyTempDeckCardIds);
+          await updateLocalDeck(localDeckId, copyTempDeckCardIds);
         }
       };
       return (
@@ -218,14 +237,15 @@ export default function EditDeckScreen({
       // TODO 拡大表示(長押し？)
       // TODO アニメーション
       // 上スワイプでローカルのデッキからカードを削除
-      const onSwipeUp = () => {
-        if (tempCardIds != null) {
-          const copyTempDeckCardIds = Array.from(tempCardIds);
+      const onSwipeUp = async () => {
+        if (localDeckCardIds != null && localDeckId != null) {
+          const copyTempDeckCardIds = Array.from(localDeckCardIds);
           const index = copyTempDeckCardIds.findIndex(
             (id) => id == item.cardId
           );
           copyTempDeckCardIds.splice(index, 1);
-          setTempCardIds(copyTempDeckCardIds);
+          setLocalDeckCardIds(copyTempDeckCardIds);
+          await updateLocalDeck(localDeckId, copyTempDeckCardIds);
         }
       };
       return (
@@ -275,37 +295,23 @@ export default function EditDeckScreen({
       if (Number.isNaN(selectedDeckId) && localDeckId == null) {
         return;
       }
-      // 現在のデッキを保存してから編集デッキを変更
+      // 編集デッキを変更
       if (Number.isNaN(selectedDeckId)) {
         setLocalDeckId(undefined);
-        const deckRepository = getRepository(Deck);
-        await deckRepository.update(
-          { id: localDeckId },
-          { cardIds: tempCardIds }
-        );
-        const loadedDecks = await deckRepository.find();
-        setLocalDecks(loadedDecks);
-        setTempCardIds([]);
+        setLocalDeckCardIds([]);
       } else {
         if (localDeckId != null) {
           setLocalDeckId(selectedDeckId);
-          const deckRepository = getRepository(Deck);
-          await deckRepository.update(
-            { id: localDeckId },
-            { cardIds: tempCardIds }
-          );
-          const loadedDecks = await deckRepository.find();
-          setLocalDecks(loadedDecks);
           const selectedLocalDeck = localDecks.filter(
             (deck) => deck.id == selectedDeckId
           )[0];
-          setTempCardIds(selectedLocalDeck.cardIds);
+          setLocalDeckCardIds(selectedLocalDeck.cardIds);
         } else {
           setLocalDeckId(selectedDeckId);
           const selectedLocalDeck = localDecks.filter(
             (deck) => deck.id == selectedDeckId
           )[0];
-          setTempCardIds(selectedLocalDeck.cardIds);
+          setLocalDeckCardIds(selectedLocalDeck.cardIds);
         }
       }
     };
@@ -372,7 +378,7 @@ export default function EditDeckScreen({
     const deleteDeck = async () => {
       const deleteDeckId = localDeckId;
       setLocalDeckId(undefined);
-      setTempCardIds([]);
+      setLocalDeckCardIds([]);
       const deckRepository = getRepository(Deck);
       await deckRepository.delete({ id: deleteDeckId }).then(() => {
         const copyDecks = Array.from(localDecks);
@@ -390,14 +396,6 @@ export default function EditDeckScreen({
     // デッキ作成
     const createDeck = async () => {
       const deckRepository = getRepository(Deck);
-      if (localDeckId != null) {
-        await deckRepository.update(
-          { id: localDeckId },
-          { cardIds: tempCardIds }
-        );
-        const loadedDecks = await deckRepository.find();
-        setLocalDecks(loadedDecks);
-      }
       const newDeck = new Deck();
       newDeck.name = "新しいデッキ";
       newDeck.cardIds = [];
@@ -405,7 +403,7 @@ export default function EditDeckScreen({
         const copyDecks = [...localDecks, deck];
         setLocalDecks(copyDecks);
         setLocalDeckId(deck.id);
-        setTempCardIds(deck.cardIds);
+        setLocalDeckCardIds(deck.cardIds);
       });
     };
 
@@ -415,22 +413,19 @@ export default function EditDeckScreen({
         const selectedDeck = localDecks.filter(
           (localDeck) => localDeck.id == localDeckId
         )[0];
-        selectedDeck.name = tempDeckName;
+        selectedDeck.name = deckName;
         setLocalDecks(localDecks);
         const deckRepository = getRepository(Deck);
-        await deckRepository.update(
-          { id: localDeckId },
-          { name: tempDeckName }
-        );
+        await deckRepository.update({ id: localDeckId }, { name: deckName });
       }
-      setChangeDeckNameDialogVisible(false);
+      setIsVisibleDeckNameDialog(false);
     };
     const showDialog = () => {
       const selectedDeck = localDecks.filter(
         (localDeck) => localDeck.id == localDeckId
       )[0];
-      setTempDeckName(selectedDeck.name);
-      setChangeDeckNameDialogVisible(true);
+      setDeckName(selectedDeck.name);
+      setIsVisibleDeckNameDialog(true);
     };
     const changeDeckNameButton = (deckId: number | undefined) => {
       if (deckId != null) {
@@ -440,17 +435,17 @@ export default function EditDeckScreen({
         return (
           <React.Fragment>
             <Button title="デッキ名変更" onPress={showDialog} />
-            <Dialog.Container visible={changeDeckNameDialogVisible}>
+            <Dialog.Container visible={isVisibleDeckNameDialog}>
               <Dialog.Title>デッキ名変更</Dialog.Title>
               <Dialog.Input
                 label="デッキ名"
-                onChangeText={(name: string) => setTempDeckName(name)}
+                onChangeText={(name: string) => setDeckName(name)}
               >
                 {selectedDeck.name}
               </Dialog.Input>
               <Dialog.Button
                 label="キャンセル"
-                onPress={() => setChangeDeckNameDialogVisible(false)}
+                onPress={() => setIsVisibleDeckNameDialog(false)}
               />
               <Dialog.Button label="保存" onPress={saveDeckName} />
             </Dialog.Container>
@@ -459,21 +454,9 @@ export default function EditDeckScreen({
       }
     };
 
-    // 編集中のデッキを保存し，ホームに戻る
-    const saveDeck = async () => {
-      const deckRepository = getRepository(Deck);
-      if (localDeckId != null) {
-        await deckRepository.update(
-          { id: localDeckId },
-          { cardIds: tempCardIds }
-        );
-      }
-      navigation.navigate("Home");
-    };
-
     return (
       <View style={styles.container}>
-        <Button title="デッキ編集完了" onPress={saveDeck} />
+        <Button title="更新" onPress={reload} />
         <Text>カード一覧</Text>
         {deckPicker(serverDeckId, onServerDeckPickerValueChanged, serverDecks)}
         {deckFlatList(serverDeckId, serverDeckCardIds, renderServerDeckItem)}
@@ -481,18 +464,13 @@ export default function EditDeckScreen({
         <Button title="新しいデッキ作成" onPress={createDeck} />
         {changeDeckNameButton(localDeckId)}
         {deckPicker(localDeckId, onLocalDeckPickerValueChanged, localDecks)}
-        {deckFlatList(localDeckId, tempCardIds, renderLocalDeckItem)}
+        {deckFlatList(localDeckId, localDeckCardIds, renderLocalDeckItem)}
         {deckDeleteButton(localDeckId)}
         <StatusBar style="auto" />
       </View>
     );
   }
 }
-
-type EditDeckScreenNavigationProp = StackNavigationProp<
-  RootStackParamList,
-  "EditDeck"
->;
 
 const styles = StyleSheet.create({
   container: {
