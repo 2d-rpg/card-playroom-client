@@ -1,6 +1,12 @@
 import { StatusBar } from "expo-status-bar";
 import React, { ReactElement, useState, useEffect } from "react";
-import { StyleSheet, View, Text, FlatList } from "react-native";
+import {
+  ActivityIndicator,
+  StyleSheet,
+  View,
+  Text,
+  FlatList,
+} from "react-native";
 import Card from "../../components/Card";
 import { Picker } from "@react-native-community/picker";
 import GestureRecognizer from "react-native-swipe-gestures";
@@ -167,10 +173,10 @@ export default function EditDeckScreen(): ReactElement {
     decksQueryResult == null ||
     decksQueryResult.loading
   ) {
-    // TODO ローディング中処理を豪華にする
     return (
       <View style={styles.container}>
-        <Text>ローディング中</Text>
+        <Text>ローディング中...</Text>
+        <ActivityIndicator size="large" color="#0000ff" />
       </View>
     );
   } else if (cardsQueryResult.error != null || decksQueryResult.error != null) {
