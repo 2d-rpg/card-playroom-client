@@ -8,7 +8,7 @@ import {
   FlatList,
 } from "react-native";
 import Card from "../../components/Card";
-import { Picker } from "@react-native-community/picker";
+import { Picker } from "@react-native-picker/picker";
 import GestureRecognizer from "react-native-swipe-gestures";
 import {
   createConnection,
@@ -265,8 +265,8 @@ export default function EditDeckScreen(): ReactElement {
 
     // サーバーのデッキ選択処理
     const onServerDeckPickerValueChanged = (itemValue: React.ReactText) => {
-      // TODO おそらくApolloの影響でserverDeck.idがstringになり選択してもnoneになってしまっていた
-      // TODO そのためserverDeckIdの型をstringにして対応し，numberで処理しているローカルのデッキ選択とは異なる
+      // * NOTE おそらくApolloの影響でserverDeck.idがstringになり選択してもnoneになってしまっていた
+      // * NOTE そのためserverDeckIdの型をstringにして対応し，numberで処理しているローカルのデッキ選択とは異なる
       const selectedServerId = itemValue.toString();
       // 2回呼ばれる対策
       if (selectedServerId === serverDeckId) {
@@ -359,9 +359,9 @@ export default function EditDeckScreen(): ReactElement {
         return <Text>選択してください</Text>;
       } else {
         const flatListItems = cardIds.map((cardId, index) => {
-          // ? filter()[0]は普通存在するが存在しない場合
-          // ? filter()[0]はundefinedになりうるので型安全でない
-          // ? 他のfilter[0]も同様
+          // * NOTE filter()[0]は普通存在するが存在しない場合
+          // * NOTE filter()[0]はundefinedになりうるので型安全でない
+          // * NOTE 他のfilter[0]も同様
           const selectedCard = cards.filter((card) => card.id == cardId)[0];
           return {
             id: index,
