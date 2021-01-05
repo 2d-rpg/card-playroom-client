@@ -12,7 +12,6 @@ export default function Card(props: {
   const windowHeight = Dimensions.get("window").height;
   const height = windowHeight / 5;
   const width = (height * 2) / 3;
-  console.log(windowHeight);
   return (
     <Image
       style={{
