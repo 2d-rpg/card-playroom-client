@@ -1,12 +1,5 @@
-import { StatusBar } from "expo-status-bar";
 import React, { ReactElement, useState, useEffect } from "react";
-import {
-  ActivityIndicator,
-  StyleSheet,
-  View,
-  Text,
-  FlatList,
-} from "react-native";
+import { ActivityIndicator, StyleSheet, View, FlatList } from "react-native";
 import Card from "../../components/Card";
 import { Picker } from "@react-native-picker/picker";
 import GestureRecognizer from "react-native-swipe-gestures";
@@ -19,11 +12,10 @@ import { Deck } from "../../entities/Deck";
 import Dialog from "react-native-dialog";
 import { gql, useQuery } from "@apollo/client";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Button } from "react-native-elements";
 import { useIsFocused } from "@react-navigation/native";
 import { Dimensions } from "react-native";
 import { FloatingAction } from "react-native-floating-action";
-import { Icon } from "react-native-elements";
+import { Icon, Text } from "react-native-elements";
 
 interface ServerCard {
   id: number;
@@ -71,7 +63,15 @@ export default function EditDeckScreen(): ReactElement {
 
   const [cards, setCards] = useState<ServerCard[]>([]);
 
-  const [isVisibleDeckNameDialog, setIsVisibleDeckNameDialog] = useState(false);
+  const [
+    isVisibleDeckDeleteConfirmDialog,
+    setIsVisibleDeckDeleteConfirmDialog,
+  ] = useState(false);
+
+  const [
+    isVisibleDeckNameChangeDialog,
+    setIsVisibleDeckNameChangeDialog,
+  ] = useState(false);
   const [deckName, setDeckName] = useState("");
 
   const decksQueryResult = useQuery<ServerDecks>(GET_SERVER_DECKS);
@@ -82,7 +82,7 @@ export default function EditDeckScreen(): ReactElement {
   const isFocused = useIsFocused();
 
   const windowHeight = Dimensions.get("window").height;
-  const cardHeight = windowHeight / 5;
+  const cardHeight = windowHeight / 4;
   const cardWidth = (cardHeight * 2) / 3;
 
   const updateLocalDeck = async (
@@ -393,20 +393,6 @@ export default function EditDeckScreen(): ReactElement {
       }
     };
 
-    // デッキ削除
-    const deleteDeck = async () => {
-      const deleteDeckId = localDeckId;
-      setLocalDeckId(undefined);
-      setLocalDeckCardIds([]);
-      const deckRepository = getRepository(Deck);
-      await deckRepository.delete({ id: deleteDeckId }).then(() => {
-        const copyDecks = Array.from(localDecks);
-        const index = copyDecks.findIndex((deck) => deck.id == deleteDeckId);
-        copyDecks.splice(index, 1);
-        setLocalDecks(copyDecks);
-      });
-    };
-
     // デッキ作成
     const createDeck = async () => {
       const deckRepository = getRepository(Deck);
@@ -421,6 +407,40 @@ export default function EditDeckScreen(): ReactElement {
       });
     };
 
+    // デッキ削除
+    const deleteDeck = async () => {
+      const deleteDeckId = localDeckId;
+      setLocalDeckId(undefined);
+      setLocalDeckCardIds([]);
+      const deckRepository = getRepository(Deck);
+      await deckRepository.delete({ id: deleteDeckId }).then(() => {
+        const copyDecks = Array.from(localDecks);
+        const index = copyDecks.findIndex((deck) => deck.id == deleteDeckId);
+        copyDecks.splice(index, 1);
+        setLocalDecks(copyDecks);
+      });
+    };
+    const showDeckDeleteConfirmDialog = () => {
+      setIsVisibleDeckDeleteConfirmDialog(true);
+    };
+    const deckDeleteConfirmDialog = () => {
+      const selectedDeck = localDecks
+        .filter((localDeck) => localDeck.id == localDeckId)
+        .pop();
+      if (selectedDeck != null) {
+        return (
+          <Dialog.Container visible={isVisibleDeckDeleteConfirmDialog}>
+            <Dialog.Title>{`${selectedDeck.name}を削除しますか？`}</Dialog.Title>
+            <Dialog.Button
+              label="キャンセル"
+              onPress={() => setIsVisibleDeckDeleteConfirmDialog(false)}
+            />
+            <Dialog.Button label="削除" onPress={deleteDeck} />
+          </Dialog.Container>
+        );
+      }
+    };
+
     // デッキ名変更
     const saveDeckName = async () => {
       if (localDeckId != null) {
@@ -432,14 +452,14 @@ export default function EditDeckScreen(): ReactElement {
         const deckRepository = getRepository(Deck);
         await deckRepository.update({ id: localDeckId }, { name: deckName });
       }
-      setIsVisibleDeckNameDialog(false);
+      setIsVisibleDeckNameChangeDialog(false);
     };
     const showDeckNameChangeDialog = () => {
       const selectedDeck = localDecks.filter(
         (localDeck) => localDeck.id == localDeckId
       )[0];
       setDeckName(selectedDeck.name);
-      setIsVisibleDeckNameDialog(true);
+      setIsVisibleDeckNameChangeDialog(true);
     };
     const deckNameChangeDialog = () => {
       const selectedDeck = localDecks
@@ -447,7 +467,7 @@ export default function EditDeckScreen(): ReactElement {
         .pop();
       if (selectedDeck != null) {
         return (
-          <Dialog.Container visible={isVisibleDeckNameDialog}>
+          <Dialog.Container visible={isVisibleDeckNameChangeDialog}>
             <Dialog.Title>デッキ名変更</Dialog.Title>
             <Dialog.Input
               label="デッキ名"
@@ -457,7 +477,7 @@ export default function EditDeckScreen(): ReactElement {
             </Dialog.Input>
             <Dialog.Button
               label="キャンセル"
-              onPress={() => setIsVisibleDeckNameDialog(false)}
+              onPress={() => setIsVisibleDeckNameChangeDialog(false)}
             />
             <Dialog.Button label="保存" onPress={saveDeckName} />
           </Dialog.Container>
@@ -519,7 +539,7 @@ export default function EditDeckScreen(): ReactElement {
           showDeckNameChangeDialog();
           break;
         case "deleteDeck":
-          deleteDeck();
+          showDeckDeleteConfirmDialog();
           break;
       }
     };
@@ -538,6 +558,7 @@ export default function EditDeckScreen(): ReactElement {
           onPressItem={onPressFloadtingActionIcons}
         />
         {deckNameChangeDialog()}
+        {deckDeleteConfirmDialog()}
       </View>
     );
   }
