@@ -21,6 +21,7 @@ import { gql, useQuery } from "@apollo/client";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Button } from "react-native-elements";
 import { useIsFocused } from "@react-navigation/native";
+import { Dimensions } from "react-native";
 
 interface ServerCard {
   id: number;
@@ -77,6 +78,10 @@ export default function EditDeckScreen(): ReactElement {
   const [reloadCount, setReloadCount] = useState(0);
   const [endpoint, setEndPoint] = useState<string>("127.0.0.1");
   const isFocused = useIsFocused();
+
+  const windowHeight = Dimensions.get("window").height;
+  const cardHeight = windowHeight / 5;
+  const cardWidth = (cardHeight * 2) / 3;
 
   const updateLocalDeck = async (
     deckId: number | undefined,
@@ -224,6 +229,8 @@ export default function EditDeckScreen(): ReactElement {
           <Card
             facePath={item.facePath}
             backPath={item.backPath}
+            height={cardHeight}
+            width={cardWidth}
             endpoint={endpoint}
           />
         </GestureRecognizer>
@@ -257,6 +264,8 @@ export default function EditDeckScreen(): ReactElement {
           <Card
             facePath={item.facePath}
             backPath={item.backPath}
+            height={cardHeight}
+            width={cardWidth}
             endpoint={endpoint}
           />
         </GestureRecognizer>
@@ -356,7 +365,7 @@ export default function EditDeckScreen(): ReactElement {
       renderItem: ({ item }: { item: renderedCard }) => JSX.Element
     ) => {
       if (selectedId == null) {
-        return <Text>選択してください</Text>;
+        return <Text style={styles.flatList}>デッキを選択してください</Text>;
       } else {
         const flatListItems = cardIds.map((cardId, index) => {
           // * NOTE filter()[0]は普通存在するが存在しない場合
@@ -372,6 +381,7 @@ export default function EditDeckScreen(): ReactElement {
         });
         return (
           <FlatList
+            style={styles.flatList}
             data={flatListItems}
             renderItem={renderItem}
             keyExtractor={(item) => item.id.toString()}
@@ -487,4 +497,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   picker: { width: 200 },
+  flatList: {
+    height: 200,
+  },
 });
