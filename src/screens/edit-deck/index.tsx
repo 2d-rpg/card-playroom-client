@@ -50,6 +50,27 @@ const GET_SERVER_DECKS = gql`
   }
 `;
 
+const windowHeight = Dimensions.get("window").height;
+const cardHeight = windowHeight / 3;
+const cardWidth = (cardHeight * 2) / 3;
+const flatListHeight = cardHeight + 10;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  picker: { width: 200 },
+  flatList: {
+    height: flatListHeight,
+    width: Dimensions.get("window").width,
+    borderWidth: 1,
+    borderColor: "#ccc",
+  },
+});
+
 export default function EditDeckScreen(): ReactElement {
   const [serverDeckId, setServerDeckId] = useState<string | undefined>(
     undefined
@@ -80,10 +101,6 @@ export default function EditDeckScreen(): ReactElement {
   const [reloadCount, setReloadCount] = useState(0);
   const [endpoint, setEndPoint] = useState<string>("127.0.0.1");
   const isFocused = useIsFocused();
-
-  const windowHeight = Dimensions.get("window").height;
-  const cardHeight = windowHeight / 4;
-  const cardWidth = (cardHeight * 2) / 3;
 
   const updateLocalDeck = async (
     deckId: number | undefined,
@@ -367,7 +384,15 @@ export default function EditDeckScreen(): ReactElement {
       renderItem: ({ item }: { item: renderedCard }) => JSX.Element
     ) => {
       if (selectedId == null) {
-        return <Text style={styles.flatList}>デッキを選択してください</Text>;
+        return (
+          <FlatList
+            style={styles.flatList}
+            data={null}
+            renderItem={renderItem}
+            keyExtractor={(item) => item.id.toString()}
+            horizontal={true}
+          ></FlatList>
+        );
       } else {
         const flatListItems = cardIds.map((cardId, index) => {
           // * NOTE filter()[0]は普通存在するが存在しない場合
@@ -546,10 +571,10 @@ export default function EditDeckScreen(): ReactElement {
 
     return (
       <View style={styles.container}>
-        <Text>カード一覧</Text>
+        <Text>サーバーのデッキ</Text>
         {deckPicker(serverDeckId, onServerDeckPickerValueChanged, serverDecks)}
         {deckFlatList(serverDeckId, serverDeckCardIds, renderServerDeckItem)}
-        <Text>デッキ</Text>
+        <Text>ローカルのデッキ</Text>
         {deckPicker(localDeckId, onLocalDeckPickerValueChanged, localDecks)}
         {deckFlatList(localDeckId, localDeckCardIds, renderLocalDeckItem)}
         <FloatingAction
@@ -563,16 +588,3 @@ export default function EditDeckScreen(): ReactElement {
     );
   }
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  picker: { width: 200 },
-  flatList: {
-    height: 200,
-  },
-});

@@ -35,11 +35,7 @@ export default function HomeScreen(): ReactElement {
     <View style={styles.container}>
       <Text>サーバーアドレス</Text>
       <TextInput
-        style={{
-          width: "50%",
-          borderWidth: 1,
-          borderColor: "#ccc",
-        }}
+        style={styles.input}
         onChangeText={(input) => setEndpoint(input)}
         value={endpoint}
       />
@@ -53,5 +49,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     alignItems: "center",
     justifyContent: "center",
+  },
+  input: {
+    width: "50%",
+    borderWidth: 1,
+    borderColor: "#ccc",
   },
 });
