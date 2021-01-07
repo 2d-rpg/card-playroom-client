@@ -1,16 +1,11 @@
 import React, { ReactElement, useState, useEffect } from "react";
-import {
-  StyleSheet,
-  View,
-  FlatList,
-  ActivityIndicator,
-  Text,
-} from "react-native";
+import { StyleSheet, View, FlatList, ActivityIndicator } from "react-native";
 import { SearchBar, ListItem } from "react-native-elements";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../../../App";
 import { gql, useQuery, useMutation } from "@apollo/client";
-import { TouchableOpacity } from "react-native";
+import { FloatingAction } from "react-native-floating-action";
+import { Icon } from "react-native-elements";
 
 const ROOMS_QUERY = gql`
   query {
@@ -87,6 +82,14 @@ export default function RoomListScreen({
       <ListItem.Chevron />
     </ListItem>
   );
+  const actions = [
+    {
+      text: "Create Room",
+      icon: <Icon color="#FFFFFF" name="add" />,
+      name: "createRoom",
+      position: 1,
+    },
+  ];
 
   if (error) console.log(error.message);
 
@@ -108,12 +111,12 @@ export default function RoomListScreen({
           renderItem={renderItem}
         />
       )}
-      <TouchableOpacity
-        onPress={() => navigation.navigate("CreateRoom")}
-        style={styles.fab}
-      >
-        <Text style={styles.fabIcon}>+</Text>
-      </TouchableOpacity>
+      <FloatingAction
+        overrideWithAction={true}
+        actions={actions}
+        color={"#03A9F4"}
+        onPressItem={() => navigation.navigate("CreateRoom")}
+      />
     </View>
   );
 }
@@ -137,19 +140,5 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
     paddingTop: 5,
     color: "gray",
-  },
-  fab: {
-    position: "absolute",
-    width: 56,
-    height: 56,
-    alignItems: "center",
-    backgroundColor: "#03A9F4",
-    right: 10,
-    bottom: 10,
-    borderRadius: 30,
-  },
-  fabIcon: {
-    fontSize: 40,
-    color: "white",
   },
 });
