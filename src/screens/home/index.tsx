@@ -31,6 +31,7 @@ export default function HomeScreen(): ReactElement {
     })();
   }, [endpoint]);
   // TODO サーバーと接続できているか確認するボタンの実装
+  // TODO ユーザーに関する情報（ユーザーアイコン，ユーザーネーム）の実装
   return (
     <View style={styles.container}>
       <Text>サーバーアドレス</Text>
