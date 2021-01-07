@@ -160,7 +160,7 @@ export default function EditDeckScreen(): ReactElement {
       }
     }
   }, [isFocused]);
-  // TODO キャッシュのせいでデータが古い可能性があるのでキャッシュを無視する更新ボタンが欲しい
+
   // カードをサーバーからロード
   useEffect(() => {
     if (cardsQueryResult != null && !cardsQueryResult.loading) {
