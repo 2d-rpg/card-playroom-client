@@ -82,7 +82,7 @@ export default function RoomListScreen({
       <ListItem.Chevron />
     </ListItem>
   );
-  const actions = [
+  const floadtingActions = [
     {
       text: "Create Room",
       icon: <Icon color="#FFFFFF" name="add" />,
@@ -113,7 +113,7 @@ export default function RoomListScreen({
       )}
       <FloatingAction
         overrideWithAction={true}
-        actions={actions}
+        actions={floadtingActions}
         color={"#03A9F4"}
         onPressItem={() => navigation.navigate("CreateRoom")}
       />

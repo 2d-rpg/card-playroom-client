@@ -128,5 +128,7 @@ const roomListIcon = ({ color, size }: { color: string; size: number }) => {
 };
 
 const editDeckIcon = ({ color, size }: { color: string; size: number }) => {
-  return <Icon name="edit" color={color} size={size} />;
+  return (
+    <Icon type="material-community" name="cards" color={color} size={size} />
+  );
 };

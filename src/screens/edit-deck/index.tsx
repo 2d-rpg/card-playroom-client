@@ -22,6 +22,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Button } from "react-native-elements";
 import { useIsFocused } from "@react-navigation/native";
 import { Dimensions } from "react-native";
+import { FloatingAction } from "react-native-floating-action";
+import { Icon } from "react-native-elements";
 
 interface ServerCard {
   id: number;
@@ -404,11 +406,6 @@ export default function EditDeckScreen(): ReactElement {
         setLocalDecks(copyDecks);
       });
     };
-    const deckDeleteButton = (deleteDeckId: number | undefined) => {
-      if (deleteDeckId != null) {
-        return <Button title="デッキ削除" onPress={deleteDeck} />;
-      }
-    };
 
     // デッキ作成
     const createDeck = async () => {
@@ -437,53 +434,110 @@ export default function EditDeckScreen(): ReactElement {
       }
       setIsVisibleDeckNameDialog(false);
     };
-    const showDialog = () => {
+    const showDeckNameChangeDialog = () => {
       const selectedDeck = localDecks.filter(
         (localDeck) => localDeck.id == localDeckId
       )[0];
       setDeckName(selectedDeck.name);
       setIsVisibleDeckNameDialog(true);
     };
-    const changeDeckNameButton = (deckId: number | undefined) => {
-      if (deckId != null) {
-        const selectedDeck = localDecks.filter(
-          (localDeck) => localDeck.id == localDeckId
-        )[0];
+    const deckNameChangeDialog = () => {
+      const selectedDeck = localDecks
+        .filter((localDeck) => localDeck.id == localDeckId)
+        .pop();
+      if (selectedDeck != null) {
         return (
-          <React.Fragment>
-            <Button title="デッキ名変更" onPress={showDialog} />
-            <Dialog.Container visible={isVisibleDeckNameDialog}>
-              <Dialog.Title>デッキ名変更</Dialog.Title>
-              <Dialog.Input
-                label="デッキ名"
-                onChangeText={(name: string) => setDeckName(name)}
-              >
-                {selectedDeck.name}
-              </Dialog.Input>
-              <Dialog.Button
-                label="キャンセル"
-                onPress={() => setIsVisibleDeckNameDialog(false)}
-              />
-              <Dialog.Button label="保存" onPress={saveDeckName} />
-            </Dialog.Container>
-          </React.Fragment>
+          <Dialog.Container visible={isVisibleDeckNameDialog}>
+            <Dialog.Title>デッキ名変更</Dialog.Title>
+            <Dialog.Input
+              label="デッキ名"
+              onChangeText={(name: string) => setDeckName(name)}
+            >
+              {selectedDeck.name}
+            </Dialog.Input>
+            <Dialog.Button
+              label="キャンセル"
+              onPress={() => setIsVisibleDeckNameDialog(false)}
+            />
+            <Dialog.Button label="保存" onPress={saveDeckName} />
+          </Dialog.Container>
         );
+      }
+    };
+
+    const floadtingActions =
+      localDeckId == null
+        ? [
+            {
+              text: "更新",
+              icon: <Icon color="#FFFFFF" type="antdesign" name="reload1" />,
+              name: "reload",
+              position: 1,
+            },
+            {
+              text: "デッキ作成",
+              icon: <Icon color="#FFFFFF" name="add" />,
+              name: "addDeck",
+              position: 2,
+            },
+          ]
+        : [
+            {
+              text: "デッキ削除",
+              icon: <Icon color="#FFFFFF" name="delete" />,
+              name: "deleteDeck",
+              position: 1,
+            },
+            {
+              text: "デッキ名変更",
+              icon: <Icon color="#FFFFFF" name="edit" />,
+              name: "renameDeck",
+              position: 2,
+            },
+            {
+              text: "更新",
+              icon: <Icon color="#FFFFFF" type="antdesign" name="reload1" />,
+              name: "reload",
+              position: 3,
+            },
+            {
+              text: "デッキ作成",
+              icon: <Icon color="#FFFFFF" name="add" />,
+              name: "addDeck",
+              position: 4,
+            },
+          ];
+    const onPressFloadtingActionIcons = (name: string | undefined) => {
+      switch (name) {
+        case "reload":
+          reload();
+          break;
+        case "addDeck":
+          createDeck();
+          break;
+        case "renameDeck":
+          showDeckNameChangeDialog();
+          break;
+        case "deleteDeck":
+          deleteDeck();
+          break;
       }
     };
 
     return (
       <View style={styles.container}>
-        <Button title="更新" onPress={reload} />
         <Text>カード一覧</Text>
         {deckPicker(serverDeckId, onServerDeckPickerValueChanged, serverDecks)}
         {deckFlatList(serverDeckId, serverDeckCardIds, renderServerDeckItem)}
         <Text>デッキ</Text>
-        <Button title="新しいデッキ作成" onPress={createDeck} />
-        {changeDeckNameButton(localDeckId)}
         {deckPicker(localDeckId, onLocalDeckPickerValueChanged, localDecks)}
         {deckFlatList(localDeckId, localDeckCardIds, renderLocalDeckItem)}
-        {deckDeleteButton(localDeckId)}
-        <StatusBar style="auto" />
+        <FloatingAction
+          actions={floadtingActions}
+          color={"#03A9F4"}
+          onPressItem={onPressFloadtingActionIcons}
+        />
+        {deckNameChangeDialog()}
       </View>
     );
   }
