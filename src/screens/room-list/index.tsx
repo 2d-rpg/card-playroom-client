@@ -4,6 +4,8 @@ import { SearchBar, ListItem } from "react-native-elements";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../../../App";
 import { gql, useQuery, useMutation } from "@apollo/client";
+import { FloatingAction } from "react-native-floating-action";
+import { Icon } from "react-native-elements";
 
 const ROOMS_QUERY = gql`
   query {
@@ -80,11 +82,19 @@ export default function RoomListScreen({
       <ListItem.Chevron />
     </ListItem>
   );
+  const floadtingActions = [
+    {
+      text: "Create Room",
+      icon: <Icon color="#FFFFFF" name="add" />,
+      name: "createRoom",
+      position: 1,
+    },
+  ];
 
   if (error) console.log(error.message);
 
   return (
-    <View>
+    <View style={styles.container}>
       <SearchBar
         placeholder="ルーム検索"
         lightTheme
@@ -101,6 +111,12 @@ export default function RoomListScreen({
           renderItem={renderItem}
         />
       )}
+      <FloatingAction
+        overrideWithAction={true}
+        actions={floadtingActions}
+        color={"#03A9F4"}
+        onPressItem={() => navigation.navigate("CreateRoom")}
+      />
     </View>
   );
 }
@@ -111,6 +127,9 @@ type RoomListScreenNavigationProp = StackNavigationProp<
 >;
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
   title: {
     fontSize: 30,
     fontWeight: "400",
