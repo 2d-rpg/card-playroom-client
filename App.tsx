@@ -98,7 +98,7 @@ export default function App(): ReactElement {
 
 export type RootStackParamList = {
   Home: undefined;
-  Room: { id: number };
+  Room: { name: string };
   CreateRoom: undefined;
   RoomList: undefined;
   EditDeck: undefined;

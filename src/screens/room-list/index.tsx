@@ -3,28 +3,10 @@ import { StyleSheet, View, FlatList, ActivityIndicator } from "react-native";
 import { SearchBar, ListItem } from "react-native-elements";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../../../App";
-import { gql, useQuery, useMutation } from "@apollo/client";
 import { FloatingAction } from "react-native-floating-action";
 import { Icon } from "react-native-elements";
-
-const ROOMS_QUERY = gql`
-  query {
-    rooms {
-      id
-      name
-    }
-  }
-`;
-
-const ENTER_ROOM = gql`
-  mutation EnterRoom($player: String!, $roomId: Int!) {
-    enterRoom(player: $player, roomId: $roomId) {
-      id
-      name
-      players
-    }
-  }
-`;
+import { useIsFocused } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function RoomListScreen({
   navigation,
@@ -35,31 +17,58 @@ export default function RoomListScreen({
   const [displayData, setDisplayData] = useState([]);
   const [result, setResult] = useState([]);
   const [text, setText] = useState("");
-  const { data, loading, error } = useQuery(ROOMS_QUERY);
-  const [enterRoom] = useMutation(ENTER_ROOM, {
-    onCompleted: (data) => {
-      console.log(data.enterRoom.id);
-      navigation.navigate("Room", { id: data.enterRoom.id });
-    },
-  });
+  const isFocused = useIsFocused();
+  const [endpoint, setEndPoint] = useState<string>("127.0.0.1");
+  const [data, setData] = useState([]);
+  // const { data, loading, error } = useQuery(ROOMS_QUERY);
+  // const [enterRoom] = useMutation(ENTER_ROOM, {
+  //   onCompleted: (data) => {
+  //     console.log(data.enterRoom.id);
+  //     navigation.navigate("Room", { id: data.enterRoom.id });
+  //   },
+  // });
+
+  useEffect(() => {
+    if (isFocused) {
+      setLoading(true);
+      (async () => {
+        const endpointFromPreferences = await AsyncStorage.getItem("@endpoint");
+        if (endpointFromPreferences != null) {
+          setEndPoint(endpointFromPreferences);
+        }
+        const websocket = new WebSocket(`ws://${endpoint}/ws`);
+        websocket.onopen = () => {
+          websocket.send("/list");
+        };
+        websocket.onmessage = (event) => {
+          console.log(event.data);
+          setData(JSON.parse(event.data).data);
+        };
+      })();
+    }
+  }, [isFocused]);
 
   useEffect(() => {
     if (typeof data != "undefined") {
-      setDisplayData(data.rooms);
-      setResult(data.rooms);
-      setLoading(loading);
+      setDisplayData(data);
+      setResult(data);
+      setLoading(false);
     }
   }, [data]);
 
-  const handlePress: (id: string) => void = (id) => {
-    enterRoom({ variables: { player: "", roomId: parseInt(id) } });
+  const handlePress: (name: string) => void = (name) => {
+    const websocket = new WebSocket(`ws://${endpoint}/ws`);
+    websocket.onopen = () => {
+      websocket.send(`/join ${name}`);
+      navigation.navigate("Room", { name: name });
+    };
   };
 
   const searchFilter = (text: string) => {
     setLoading(true);
     setText(text);
-    const newData = result.filter((item: { name: string; id: string }) => {
-      const itemData = `${item.name.toUpperCase()} ${item.id.toUpperCase()}`;
+    const newData = result.filter((item: { name: string }) => {
+      const itemData = `${item.name.toUpperCase()}`;
 
       const textData = text.toUpperCase();
 
@@ -70,14 +79,14 @@ export default function RoomListScreen({
     setLoading(false);
   };
 
-  const keyExtractor = (_item: { name: string; id: string }, index: number) =>
+  const keyExtractor = (_item: { name: string }, index: number) =>
     index.toString();
 
-  const renderItem = ({ item }: { item: { name: string; id: string } }) => (
-    <ListItem bottomDivider onPress={() => handlePress(item.id)}>
+  const renderItem = ({ item }: { item: { name: string } }) => (
+    <ListItem bottomDivider onPress={() => handlePress(item.name)}>
       <ListItem.Content>
         <ListItem.Title style={styles.title}>{item.name}</ListItem.Title>
-        <ListItem.Subtitle style={styles.subtitle}>{item.id}</ListItem.Subtitle>
+        {/* <ListItem.Subtitle style={styles.subtitle}>{item.id}</ListItem.Subtitle> */}
       </ListItem.Content>
       <ListItem.Chevron />
     </ListItem>
@@ -90,8 +99,6 @@ export default function RoomListScreen({
       position: 1,
     },
   ];
-
-  if (error) console.log(error.message);
 
   return (
     <View style={styles.container}>
