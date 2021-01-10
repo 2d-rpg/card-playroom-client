@@ -43,6 +43,10 @@ export default function CreateRoomScreen({
     console.log(values);
     if (websocket.current != null) {
       websocket.current.send(`/join ${values.name}`);
+      navigation.navigate("Room", {
+        roomname: values.name,
+        endpoint: endpoint,
+      });
     }
   };
 
