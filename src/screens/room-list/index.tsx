@@ -8,6 +8,8 @@ import { Icon } from "react-native-elements";
 import { useIsFocused } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+const DEFOULT_VALUE = "127.0.0.1";
+
 export default function RoomListScreen({
   navigation,
 }: {
@@ -18,43 +20,59 @@ export default function RoomListScreen({
   const [result, setResult] = useState([]);
   const [text, setText] = useState("");
   const isFocused = useIsFocused();
-  const [endpoint, setEndPoint] = useState<string>("127.0.0.1");
+  const [endpoint, setEndPoint] = useState<string>(DEFOULT_VALUE);
   const [data, setData] = useState([]);
+  const [updated, setUpdated] = useState(false);
   const websocket = useRef<WebSocket | null>(null);
-  // const { data, loading, error } = useQuery(ROOMS_QUERY);
-  // const [enterRoom] = useMutation(ENTER_ROOM, {
-  //   onCompleted: (data) => {
-  //     console.log(data.enterRoom.id);
-  //     navigation.navigate("Room", { id: data.enterRoom.id });
-  //   },
-  // });
+
+  useEffect(() => {
+    if (updated) {
+      websocket.current = new WebSocket(`ws://${endpoint}/ws`);
+      websocket.current.onopen = () => {
+        console.log("opened");
+        if (websocket.current != null) {
+          console.log("not null");
+          websocket.current.send("/list");
+        } else {
+          console.log("null");
+        }
+      };
+      websocket.current.onmessage = (event) => {
+        console.log(event.data);
+        if (event.data.startsWith("{")) {
+          setData(JSON.parse(event.data).data);
+        }
+      };
+      return () => {
+        if (websocket.current != null) {
+          console.log("websocket closed");
+          websocket.current.close();
+        }
+      };
+    }
+  }, [updated]);
+
+  const getEndPoint = async () => {
+    let endpointFromPreferences = DEFOULT_VALUE;
+    try {
+      endpointFromPreferences =
+        (await AsyncStorage.getItem("@endpoint")) || DEFOULT_VALUE;
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setEndPoint(endpointFromPreferences);
+      setUpdated(true);
+    }
+  };
 
   useEffect(() => {
     if (isFocused) {
       setLoading(true);
-      (async () => {
-        const endpointFromPreferences = await AsyncStorage.getItem("@endpoint");
-        if (endpointFromPreferences != null) {
-          setEndPoint(endpointFromPreferences);
-        }
-        websocket.current = new WebSocket(`ws://${endpoint}/ws`);
-        websocket.current.onopen = () => {
-          if (websocket.current != null) {
-            websocket.current.send("/list");
-          }
-        };
-        websocket.current.onmessage = (event) => {
-          console.log(event.data);
-          if (event.data.startsWith("{")) {
-            setData(JSON.parse(event.data).data);
-          }
-        };
-      })();
+      getEndPoint();
     }
     return () => {
-      if (websocket.current != null) {
-        websocket.current.close();
-      }
+      setUpdated(false);
+      console.log("set updated false");
     };
   }, [isFocused]);
 

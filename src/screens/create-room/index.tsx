@@ -1,12 +1,6 @@
 import React, { ReactElement, useEffect, useRef } from "react";
-import {
-  StyleSheet,
-  View,
-  Text,
-  Button,
-  ScrollView,
-  TextInput,
-} from "react-native";
+import { StyleSheet, View, Text, ScrollView } from "react-native";
+import { Button, Input } from "react-native-elements";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RouteProp } from "@react-navigation/native";
 import { RootStackParamList } from "../../../App";
@@ -82,17 +76,18 @@ export default function CreateRoomScreen({
                 {errors.name && touched.name ? (
                   <Text>{errors.name}</Text>
                 ) : null}
-                <TextInput
-                  value={values.name}
-                  onChangeText={handleChange("name")}
-                  onBlur={handleBlur("name")}
-                  placeholder="ルーム名を入力してください"
-                />
               </View>
+              <Input
+                value={values.name}
+                onChangeText={handleChange("name")}
+                onBlur={handleBlur("name")}
+                placeholder="ルーム名を入力してください"
+              />
               <Button
                 title="Submit"
                 onPress={() => handleSubmit()}
                 disabled={!isValid || isSubmitting}
+                style={styles.button}
               />
             </>
           )}
@@ -115,4 +110,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  button: { margin: 10 },
 });
