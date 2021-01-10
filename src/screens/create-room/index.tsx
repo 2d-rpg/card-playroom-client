@@ -1,4 +1,4 @@
-import React, { ReactElement } from "react";
+import React, { ReactElement, useEffect, useRef } from "react";
 import {
   StyleSheet,
   View,
@@ -8,37 +8,42 @@ import {
   TextInput,
 } from "react-native";
 import { StackNavigationProp } from "@react-navigation/stack";
+import { RouteProp } from "@react-navigation/native";
 import { RootStackParamList } from "../../../App";
-import { gql, useMutation } from "@apollo/client";
 import { Formik } from "formik";
 import * as Yup from "yup";
 
-const CREATE_ROOM = gql`
-  mutation CreateRoom($name: String!, $player: String!) {
-    createRoom(name: $name, player: $player) {
-      id
-      name
-      players
-    }
-  }
-`;
-
 export default function CreateRoomScreen({
+  route,
   navigation,
 }: {
+  route: CreateRoomScreenRouteProp;
   navigation: CreateRoomScreenNavigationProp;
 }): ReactElement {
-  const [createRoom] = useMutation(CREATE_ROOM, {
-    onCompleted: (data) => {
-      console.log(data.createRoom.id);
-      navigation.navigate("Room", { id: data.createRoom.id });
-    },
-  });
+  // const [createRoom] = useMutation(CREATE_ROOM, {
+  //   onCompleted: (data) => {
+  //     console.log(data.createRoom.id);
+  //     navigation.navigate("Room", { id: data.createRoom.id });
+  //   },
+  // });
+  const { endpoint } = route.params;
+  const websocket = useRef<WebSocket | null>(null);
+
+  useEffect(() => {
+    websocket.current = new WebSocket(`ws://${endpoint}/ws`);
+    return () => {
+      if (websocket.current != null) {
+        websocket.current.close();
+      }
+    };
+  }, []);
 
   const onSubmit = async (values: { name: string }) => {
     // データ送信
     console.log(values);
-    createRoom({ variables: { name: values.name, player: "piypiyo" } });
+    if (websocket.current != null) {
+      websocket.current.send(`/join ${values.name}`);
+    }
   };
 
   const schema = Yup.object().shape({
@@ -93,6 +98,7 @@ export default function CreateRoomScreen({
   );
 }
 
+type CreateRoomScreenRouteProp = RouteProp<RootStackParamList, "CreateRoom">;
 type CreateRoomScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
   "CreateRoom"

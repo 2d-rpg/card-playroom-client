@@ -1,4 +1,4 @@
-import React, { ReactElement, useState, useEffect } from "react";
+import React, { ReactElement, useState, useEffect, useRef } from "react";
 import { StyleSheet, View, FlatList, ActivityIndicator } from "react-native";
 import { SearchBar, ListItem } from "react-native-elements";
 import { StackNavigationProp } from "@react-navigation/stack";
@@ -20,6 +20,7 @@ export default function RoomListScreen({
   const isFocused = useIsFocused();
   const [endpoint, setEndPoint] = useState<string>("127.0.0.1");
   const [data, setData] = useState([]);
+  const websocket = useRef<WebSocket | null>(null);
   // const { data, loading, error } = useQuery(ROOMS_QUERY);
   // const [enterRoom] = useMutation(ENTER_ROOM, {
   //   onCompleted: (data) => {
@@ -36,16 +37,25 @@ export default function RoomListScreen({
         if (endpointFromPreferences != null) {
           setEndPoint(endpointFromPreferences);
         }
-        const websocket = new WebSocket(`ws://${endpoint}/ws`);
-        websocket.onopen = () => {
-          websocket.send("/list");
+        websocket.current = new WebSocket(`ws://${endpoint}/ws`);
+        websocket.current.onopen = () => {
+          if (websocket.current != null) {
+            websocket.current.send("/list");
+          }
         };
-        websocket.onmessage = (event) => {
+        websocket.current.onmessage = (event) => {
           console.log(event.data);
-          setData(JSON.parse(event.data).data);
+          if (event.data.startsWith("{")) {
+            setData(JSON.parse(event.data).data);
+          }
         };
       })();
     }
+    return () => {
+      if (websocket.current != null) {
+        websocket.current.close();
+      }
+    };
   }, [isFocused]);
 
   useEffect(() => {
@@ -57,11 +67,9 @@ export default function RoomListScreen({
   }, [data]);
 
   const handlePress: (name: string) => void = (name) => {
-    const websocket = new WebSocket(`ws://${endpoint}/ws`);
-    websocket.onopen = () => {
-      websocket.send(`/join ${name}`);
-      navigation.navigate("Room", { name: name });
-    };
+    if (websocket.current != null) {
+      navigation.navigate("Room", { roomname: name, endpoint: endpoint });
+    }
   };
 
   const searchFilter = (text: string) => {
@@ -122,7 +130,9 @@ export default function RoomListScreen({
         overrideWithAction={true}
         actions={floadtingActions}
         color={"#03A9F4"}
-        onPressItem={() => navigation.navigate("CreateRoom")}
+        onPressItem={() =>
+          navigation.navigate("CreateRoom", { endpoint: endpoint })
+        }
       />
     </View>
   );

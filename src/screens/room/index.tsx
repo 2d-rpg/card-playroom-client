@@ -1,13 +1,17 @@
 import React, { ReactElement, useRef, useEffect } from "react";
 import { StyleSheet, View, Text, Animated, PanResponder } from "react-native";
 // import { StackNavigationProp } from "@react-navigation/stack";
-// import { RouteProp } from "@react-navigation/native";
-// import { RootStackParamList } from "../../../App";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { RouteProp } from "@react-navigation/native";
+import { RootStackParamList } from "../../../App";
 
-export default function RoomScreen(): ReactElement {
+export default function RoomScreen({
+  route,
+}: {
+  route: RoomScreenRouteProp;
+}): ReactElement {
+  const { roomname, endpoint } = route.params;
   const pan = useRef(new Animated.ValueXY()).current;
-  const socket = useRef<WebSocket | null>(null);
+  const websocket = useRef<WebSocket | null>(null);
   const panResponder = useRef(
     PanResponder.create({
       onMoveShouldSetPanResponder: () => true,
@@ -27,37 +31,41 @@ export default function RoomScreen(): ReactElement {
       }),
       onPanResponderRelease: () => {
         pan.flattenOffset();
-        if (socket.current != null) {
+        if (websocket.current != null) {
           // ポジションをjsonとしてサーバに送信
-          socket.current.send(JSON.stringify(pan));
+          websocket.current.send(JSON.stringify(pan));
         }
       },
     })
   ).current;
 
   useEffect(() => {
-    (async () => {
-      try {
-        const endpointFromPreferences = await AsyncStorage.getItem("@endpoint");
-        if (endpointFromPreferences == null) {
-          socket.current = new WebSocket("ws://127.0.0.1/ws");
-        } else {
-          socket.current = new WebSocket(`ws://${endpointFromPreferences}/ws`);
+    try {
+      websocket.current = new WebSocket(`ws://${endpoint}/ws`);
+      websocket.current.onopen = () => {
+        if (websocket.current != null) {
+          // ルーム入室
+          websocket.current.send(`/join ${roomname}`);
         }
-        // イベント受け取り
-        socket.current.onmessage = (event) => {
-          console.log("received event:" + event.data);
-          if (event.data.startsWith("{")) {
-            // TODO サーバ側ですべてjson parsableになるよう実装
-            const data = JSON.parse(event.data);
-            pan.setValue({ x: data.x, y: data.y });
-          }
-        };
-      } catch (error) {
-        // 設定読み込みエラー
-        console.log(error);
+      };
+      // イベント受け取り
+      websocket.current.onmessage = (event) => {
+        console.log("received event:" + event.data);
+        if (event.data.startsWith("{")) {
+          // TODO サーバ側ですべてjson parsableになるよう実装
+          const data = JSON.parse(event.data);
+          pan.setValue({ x: data.x, y: data.y });
+        }
+      };
+    } catch (error) {
+      // 設定読み込みエラー
+      console.log(error);
+    }
+    return () => {
+      if (websocket.current != null) {
+        websocket.current.close();
       }
-    })();
+    };
   }, []);
 
   // TODO WebSocket接続エラーの対応
@@ -76,7 +84,7 @@ export default function RoomScreen(): ReactElement {
   );
 }
 
-// type RoomScreenRouteProp = RouteProp<RootStackParamList, "Room">;
+type RoomScreenRouteProp = RouteProp<RootStackParamList, "Room">;
 // type RoomScreenNavigationProp = StackNavigationProp<RootStackParamList, "Room">;
 
 const styles = StyleSheet.create({
