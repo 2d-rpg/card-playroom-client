@@ -31,10 +31,8 @@ export default function RoomScreen({
       }),
       onPanResponderRelease: () => {
         pan.flattenOffset();
-        if (websocket.current != null) {
-          // ポジションをjsonとしてサーバに送信
-          websocket.current.send(JSON.stringify(pan));
-        }
+        // ポジションをjsonとしてサーバに送信
+        websocket.current?.send(JSON.stringify(pan));
       },
     })
   ).current;
@@ -43,10 +41,8 @@ export default function RoomScreen({
     try {
       websocket.current = new WebSocket(`ws://${endpoint}/ws`);
       websocket.current.onopen = () => {
-        if (websocket.current != null) {
-          // ルーム入室
-          websocket.current.send(`/join ${roomname}`);
-        }
+        // ルーム入室
+        websocket.current?.send(`/join ${roomname}`);
       };
       // イベント受け取り
       websocket.current.onmessage = (event) => {
@@ -55,6 +51,9 @@ export default function RoomScreen({
           // TODO サーバ側ですべてjson parsableになるよう実装
           const data = JSON.parse(event.data);
           pan.setValue({ x: data.x, y: data.y });
+        } else if (event.data == "Someone joined") {
+          // TODO 3人以上のとき、2人以上から送られてくることになり、危険
+          websocket.current?.send(JSON.stringify(pan));
         }
       };
     } catch (error) {
