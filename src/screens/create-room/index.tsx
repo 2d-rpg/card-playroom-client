@@ -51,49 +51,45 @@ export default function CreateRoomScreen({
       .required("ルーム名を入力してください"),
   });
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <View>
-        <Formik
-          initialValues={{
-            name: "",
-          }}
-          validateOnMount
-          validationSchema={schema}
-          onSubmit={(values) => onSubmit(values)}
-        >
-          {({
-            handleSubmit,
-            handleChange,
-            handleBlur,
-            isValid,
-            isSubmitting,
-            values,
-            errors,
-            touched,
-          }) => (
-            <>
-              <View>
-                {errors.name && touched.name ? (
-                  <Text>{errors.name}</Text>
-                ) : null}
-              </View>
-              <Input
-                value={values.name}
-                onChangeText={handleChange("name")}
-                onBlur={handleBlur("name")}
-                placeholder="ルーム名を入力してください"
-              />
-              <Button
-                title="Submit"
-                onPress={() => handleSubmit()}
-                disabled={!isValid || isSubmitting}
-                style={styles.button}
-              />
-            </>
-          )}
-        </Formik>
-      </View>
-    </ScrollView>
+    <View style={styles.container}>
+      <Formik
+        initialValues={{
+          name: "",
+        }}
+        validateOnMount
+        validationSchema={schema}
+        onSubmit={(values) => onSubmit(values)}
+      >
+        {({
+          handleSubmit,
+          handleChange,
+          handleBlur,
+          isValid,
+          isSubmitting,
+          values,
+          errors,
+          touched,
+        }) => (
+          <>
+            <View>
+              {errors.name && touched.name ? <Text>{errors.name}</Text> : null}
+            </View>
+            <Input
+              value={values.name}
+              onChangeText={handleChange("name")}
+              onBlur={handleBlur("name")}
+              placeholder="ルーム名を入力してください"
+            />
+            <Button
+              title="Submit"
+              onPress={() => handleSubmit()}
+              disabled={!isValid || isSubmitting}
+              style={styles.button}
+            />
+          </>
+        )}
+      </Formik>
+    </View>
   );
 }
 
