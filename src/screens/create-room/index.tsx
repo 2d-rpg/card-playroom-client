@@ -1,5 +1,5 @@
 import React, { ReactElement, useEffect, useRef } from "react";
-import { StyleSheet, View, Text, ScrollView } from "react-native";
+import { StyleSheet, View, Text } from "react-native";
 import { Button, Input } from "react-native-elements";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RouteProp } from "@react-navigation/native";
