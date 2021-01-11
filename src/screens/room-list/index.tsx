@@ -15,7 +15,7 @@ export default function RoomListScreen({
 }: {
   navigation: RoomListScreenNavigationProp;
 }): ReactElement {
-  const [isLoading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [displayData, setDisplayData] = useState([]);
   const [text, setText] = useState("");
   const isFocused = useIsFocused();
@@ -66,7 +66,7 @@ export default function RoomListScreen({
 
   useEffect(() => {
     if (isFocused) {
-      setLoading(true);
+      setIsLoading(true);
       getEndPoint();
     }
     return () => {
@@ -78,7 +78,7 @@ export default function RoomListScreen({
   useEffect(() => {
     if (typeof data != "undefined") {
       setDisplayData(data);
-      setLoading(false);
+      setIsLoading(false);
     }
   }, [data]);
 
@@ -89,7 +89,7 @@ export default function RoomListScreen({
   };
 
   const searchFilter = (text: string) => {
-    setLoading(true);
+    setIsLoading(true);
     setText(text);
     const newData = data.filter((item: { name: string }) => {
       const itemData = `${item.name.toUpperCase()}`;
@@ -100,7 +100,7 @@ export default function RoomListScreen({
     });
 
     setDisplayData(newData);
-    setLoading(false);
+    setIsLoading(false);
   };
 
   const keyExtractor = (_item: { name: string }, index: number) =>
