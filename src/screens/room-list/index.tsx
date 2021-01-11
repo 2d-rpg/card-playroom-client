@@ -7,8 +7,7 @@ import { FloatingAction } from "react-native-floating-action";
 import { Icon } from "react-native-elements";
 import { useIsFocused } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
-const DEFOULT_VALUE = "127.0.0.1";
+import { DEFAULT_ENDPOINT } from "../home/index";
 
 export default function RoomListScreen({
   navigation,
@@ -19,7 +18,7 @@ export default function RoomListScreen({
   const [displayData, setDisplayData] = useState([]);
   const [text, setText] = useState("");
   const isFocused = useIsFocused();
-  const [endpoint, setEndPoint] = useState<string>(DEFOULT_VALUE);
+  const [endpoint, setEndPoint] = useState<string>(DEFAULT_ENDPOINT);
   const [data, setData] = useState([]);
   const [updated, setUpdated] = useState(false);
   const websocket = useRef<WebSocket | null>(null);
@@ -52,10 +51,10 @@ export default function RoomListScreen({
   }, [updated]);
 
   const getEndPoint = async () => {
-    let endpointFromPreferences = DEFOULT_VALUE;
+    let endpointFromPreferences = DEFAULT_ENDPOINT;
     try {
       endpointFromPreferences =
-        (await AsyncStorage.getItem("@endpoint")) || DEFOULT_VALUE;
+        (await AsyncStorage.getItem("@endpoint")) || DEFAULT_ENDPOINT;
     } catch (error) {
       console.log(error);
     } finally {

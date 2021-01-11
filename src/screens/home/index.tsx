@@ -4,7 +4,7 @@ import { StyleSheet, View } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Input } from "react-native-elements";
 
-const DEFAULT_ENDPOINT = "127.0.0.1";
+export const DEFAULT_ENDPOINT = "127.0.0.1";
 export default function HomeScreen(): ReactElement {
   const [endpoint, setEndpoint] = useState(DEFAULT_ENDPOINT);
   useEffect(() => {
