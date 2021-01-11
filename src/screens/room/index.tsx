@@ -32,7 +32,12 @@ export default function RoomScreen({
       onPanResponderRelease: () => {
         pan.flattenOffset();
         // ポジションをjsonとしてサーバに送信
-        websocket.current?.send(JSON.stringify(pan));
+        if (
+          websocket.current != null &&
+          websocket.current.readyState == WebSocket.OPEN
+        ) {
+          websocket.current?.send(JSON.stringify(pan));
+        }
       },
     })
   ).current;
