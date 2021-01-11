@@ -17,7 +17,6 @@ export default function RoomListScreen({
 }): ReactElement {
   const [isLoading, setLoading] = useState(true);
   const [displayData, setDisplayData] = useState([]);
-  const [result, setResult] = useState([]);
   const [text, setText] = useState("");
   const isFocused = useIsFocused();
   const [endpoint, setEndPoint] = useState<string>(DEFOULT_VALUE);
@@ -79,7 +78,6 @@ export default function RoomListScreen({
   useEffect(() => {
     if (typeof data != "undefined") {
       setDisplayData(data);
-      setResult(data);
       setLoading(false);
     }
   }, [data]);
@@ -93,7 +91,7 @@ export default function RoomListScreen({
   const searchFilter = (text: string) => {
     setLoading(true);
     setText(text);
-    const newData = result.filter((item: { name: string }) => {
+    const newData = data.filter((item: { name: string }) => {
       const itemData = `${item.name.toUpperCase()}`;
 
       const textData = text.toUpperCase();
