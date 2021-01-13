@@ -31,10 +31,7 @@ export default function RoomListScreen({
       websocket.current.onopen = () => {
         console.log("opened");
         if (websocket.current != null) {
-          console.log("not null");
           websocket.current.send("/list");
-        } else {
-          console.log("null");
         }
       };
       websocket.current.onmessage = (event) => {
@@ -123,7 +120,29 @@ export default function RoomListScreen({
       name: "createRoom",
       position: 1,
     },
+    {
+      text: "Update List",
+      icon: <Icon color="#FFFFFF" type="antdesign" name="reload1" />,
+      name: "updateList",
+      position: 2,
+    },
   ];
+
+  const onPressFloadtingActionIcons = (name: string | undefined) => {
+    switch (name) {
+      case "createRoom":
+        navigation.navigate("CreateRoom", { endpoint: endpoint });
+        break;
+      case "updateList":
+        if (
+          websocket.current != null &&
+          websocket.current.readyState == WebSocket.OPEN
+        ) {
+          websocket.current.send("/list");
+        }
+        break;
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -144,12 +163,10 @@ export default function RoomListScreen({
         />
       )}
       <FloatingAction
-        overrideWithAction={true}
+        // overrideWithAction={true}
         actions={floadtingActions}
         color={"#03A9F4"}
-        onPressItem={() =>
-          navigation.navigate("CreateRoom", { endpoint: endpoint })
-        }
+        onPressItem={onPressFloadtingActionIcons}
       />
     </View>
   );
