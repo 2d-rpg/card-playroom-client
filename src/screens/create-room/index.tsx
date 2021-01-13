@@ -1,4 +1,4 @@
-import React, { ReactElement, useEffect, useRef } from "react";
+import React, { ReactElement, useEffect, useRef, useState } from "react";
 import { StyleSheet, View, Text } from "react-native";
 import { Button, Input } from "react-native-elements";
 import { StackNavigationProp } from "@react-navigation/stack";
@@ -22,9 +22,24 @@ export default function CreateRoomScreen({
   // });
   const { endpoint } = route.params;
   const websocket = useRef<WebSocket | null>(null);
+  const [exists, setExists] = useState(false);
 
   useEffect(() => {
     websocket.current = new WebSocket(`ws://${endpoint}/ws`);
+    websocket.current.onmessage = (event) => {
+      if (event.data.startsWith("{")) {
+        const json = JSON.parse(event.data);
+        if (json.status === "ok") {
+          setExists(false);
+          navigation.navigate("Room", {
+            roomid: json.data.id,
+            endpoint: endpoint,
+          });
+        } else {
+          setExists(true);
+        }
+      }
+    };
     return () => {
       if (websocket.current != null) {
         websocket.current.close();
@@ -36,11 +51,7 @@ export default function CreateRoomScreen({
     // データ送信
     console.log(values);
     if (websocket.current != null) {
-      websocket.current.send(`/join ${values.name}`);
-      navigation.navigate("Room", {
-        roomname: values.name,
-        endpoint: endpoint,
-      });
+      websocket.current.send(`/create ${values.name}`);
     }
   };
 
@@ -74,12 +85,25 @@ export default function CreateRoomScreen({
             <View>
               {errors.name && touched.name ? <Text>{errors.name}</Text> : null}
             </View>
-            <Input
-              value={values.name}
-              onChangeText={handleChange("name")}
-              onBlur={handleBlur("name")}
-              placeholder="ルーム名を入力してください"
-            />
+            {exists ? (
+              <Input
+                label="新規ルーム名"
+                value={values.name}
+                onChangeText={handleChange("name")}
+                onBlur={handleBlur("name")}
+                errorMessage="既に存在するルーム名です"
+                errorStyle={{ color: "red" }}
+                placeholder="ルーム名を入力してください"
+              />
+            ) : (
+              <Input
+                label="新規ルーム名"
+                value={values.name}
+                onChangeText={handleChange("name")}
+                onBlur={handleBlur("name")}
+                placeholder="ルーム名を入力してください"
+              />
+            )}
             <Button
               title="Submit"
               onPress={() => handleSubmit()}

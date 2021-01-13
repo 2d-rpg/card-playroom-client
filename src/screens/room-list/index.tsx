@@ -9,17 +9,19 @@ import { useIsFocused } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { DEFAULT_ENDPOINT } from "../home/index";
 
+type RoomList = { name: string; id: number }[];
+
 export default function RoomListScreen({
   navigation,
 }: {
   navigation: RoomListScreenNavigationProp;
 }): ReactElement {
   const [isLoading, setIsLoading] = useState(true);
-  const [displayData, setDisplayData] = useState([]);
+  const [displayData, setDisplayData] = useState<RoomList>([]);
   const [text, setText] = useState("");
   const isFocused = useIsFocused();
   const [endpoint, setEndPoint] = useState<string>(DEFAULT_ENDPOINT);
-  const [data, setData] = useState([]);
+  const [data, setData] = useState<RoomList>([]);
   const [updated, setUpdated] = useState(false);
   const websocket = useRef<WebSocket | null>(null);
 
@@ -38,7 +40,8 @@ export default function RoomListScreen({
       websocket.current.onmessage = (event) => {
         console.log(event.data);
         if (event.data.startsWith("{")) {
-          setData(JSON.parse(event.data).data);
+          const json = JSON.parse(event.data);
+          setData(json.data);
         }
       };
       return () => {
@@ -81,9 +84,9 @@ export default function RoomListScreen({
     }
   }, [data]);
 
-  const handlePress: (name: string) => void = (name) => {
+  const handlePress: (id: number) => void = (id) => {
     if (websocket.current != null) {
-      navigation.navigate("Room", { roomname: name, endpoint: endpoint });
+      navigation.navigate("Room", { roomid: id, endpoint: endpoint });
     }
   };
 
@@ -102,14 +105,14 @@ export default function RoomListScreen({
     setIsLoading(false);
   };
 
-  const keyExtractor = (_item: { name: string }, index: number) =>
+  const keyExtractor = (_item: { name: string; id: number }, index: number) =>
     index.toString();
 
-  const renderItem = ({ item }: { item: { name: string } }) => (
-    <ListItem bottomDivider onPress={() => handlePress(item.name)}>
+  const renderItem = ({ item }: { item: { name: string; id: number } }) => (
+    <ListItem bottomDivider onPress={() => handlePress(item.id)}>
       <ListItem.Content>
         <ListItem.Title style={styles.title}>{item.name}</ListItem.Title>
-        {/* <ListItem.Subtitle style={styles.subtitle}>{item.id}</ListItem.Subtitle> */}
+        <ListItem.Subtitle style={styles.subtitle}>{item.id}</ListItem.Subtitle>
       </ListItem.Content>
       <ListItem.Chevron />
     </ListItem>

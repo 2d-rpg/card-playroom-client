@@ -9,7 +9,7 @@ export default function RoomScreen({
 }: {
   route: RoomScreenRouteProp;
 }): ReactElement {
-  const { roomname, endpoint } = route.params;
+  const { roomid, endpoint } = route.params;
   const pan = useRef(new Animated.ValueXY()).current;
   const websocket = useRef<WebSocket | null>(null);
   const panResponder = useRef(
@@ -36,7 +36,7 @@ export default function RoomScreen({
           websocket.current != null &&
           websocket.current.readyState == WebSocket.OPEN
         ) {
-          websocket.current?.send(JSON.stringify(pan));
+          websocket.current.send(JSON.stringify(pan));
         }
       },
     })
@@ -47,7 +47,7 @@ export default function RoomScreen({
       websocket.current = new WebSocket(`ws://${endpoint}/ws`);
       websocket.current.onopen = () => {
         // ルーム入室
-        websocket.current?.send(`/join ${roomname}`);
+        websocket.current?.send(`/join ${roomid}`);
       };
       // イベント受け取り
       websocket.current.onmessage = (event) => {
