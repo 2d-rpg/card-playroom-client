@@ -1,15 +1,15 @@
 import React, { ReactElement, useState, useEffect, useRef } from "react";
 import { StyleSheet, View, FlatList, ActivityIndicator } from "react-native";
-import { SearchBar, ListItem } from "react-native-elements";
+import { SearchBar, ListItem, Icon } from "react-native-elements";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../../../App";
 import { FloatingAction } from "react-native-floating-action";
-import { Icon } from "react-native-elements";
 import { useIsFocused } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { DEFAULT_ENDPOINT } from "../home/index";
 
-type RoomList = { name: string; id: number }[];
+type Room = { name: string; id: number; num: number };
+type RoomList = Room[];
 
 export default function RoomListScreen({
   navigation,
@@ -105,10 +105,9 @@ export default function RoomListScreen({
     setIsLoading(false);
   };
 
-  const keyExtractor = (_item: { name: string; id: number }, index: number) =>
-    index.toString();
+  const keyExtractor = (_item: Room, index: number) => index.toString();
 
-  const renderItem = ({ item }: { item: { name: string; id: number } }) => (
+  const renderItem = ({ item }: { item: Room }) => (
     <ListItem bottomDivider onPress={() => handlePress(item.id)}>
       <ListItem.Content>
         <ListItem.Title style={styles.title}>{item.name}</ListItem.Title>
