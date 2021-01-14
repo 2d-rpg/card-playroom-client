@@ -90,8 +90,8 @@ export default function RoomListScreen({
   const searchFilter = (text: string) => {
     setIsLoading(true);
     setText(text);
-    const newData = data.filter((item: { name: string }) => {
-      const itemData = `${item.name.toUpperCase()}`;
+    const newData = data.filter((item: Room) => {
+      const itemData = `${item.name.toUpperCase()} ${item.id}`;
 
       const textData = text.toUpperCase();
 
