@@ -13,6 +13,14 @@ import { FloatingAction } from "react-native-floating-action";
 import { useIsFocused } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { DEFAULT_ENDPOINT } from "../home/index";
+import Dialog from "react-native-dialog";
+import { Picker } from "@react-native-picker/picker";
+import { Deck } from "../../entities/Deck";
+import {
+  createConnection,
+  getRepository,
+  getConnectionManager,
+} from "typeorm/browser";
 
 type Room = { name: string; id: string; num: number };
 type RoomList = Room[];
@@ -30,9 +38,20 @@ export default function RoomListScreen({
   const [roomListData, setRoomListData] = useState<RoomList>([]);
   const [updated, setUpdated] = useState(false);
   const websocket = useRef<WebSocket | null>(null);
+  const [
+    isVisibleRoomEnterConfirmDialog,
+    setIsVisibleRoomEnterConfirmDialog,
+  ] = useState(false);
+  const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
+  const [localDeckId, setLocalDeckId] = useState<number | string | undefined>(
+    undefined
+  );
+  const [localDecks, setLocalDecks] = useState<Deck[]>([]);
+  const [localDeckCardIds, setLocalDeckCardIds] = useState<number[]>([]);
 
   useEffect(() => {
     if (updated) {
+      // WebSocket作成
       websocket.current = new WebSocket(`ws://${endpoint}/ws`);
       websocket.current.onopen = () => {
         console.log("opened");
@@ -47,7 +66,24 @@ export default function RoomListScreen({
           setRoomListData(json.data.rooms);
         }
       };
+      // ローカルデッキ取得
+      (async () => {
+        const connectionManager = getConnectionManager();
+        if (connectionManager.connections.length == 0) {
+          await createConnection({
+            database: "test",
+            driver: require("expo-sqlite"),
+            entities: [Deck],
+            synchronize: true,
+            type: "expo",
+          });
+        }
+        const deckRepository = getRepository(Deck);
+        const loadedDecks = await deckRepository.find();
+        setLocalDecks(loadedDecks);
+      })();
       return () => {
+        // WebSocket切断
         if (websocket.current != null) {
           websocket.current.close();
         }
@@ -55,6 +91,7 @@ export default function RoomListScreen({
     }
   }, [updated]);
 
+  /** WebSocketのエンドポイント取得 */
   const getEndPoint = async () => {
     let endpointFromPreferences = DEFAULT_ENDPOINT;
     try {
@@ -86,12 +123,13 @@ export default function RoomListScreen({
     }
   }, [roomListData]);
 
+  /** FlatListのアイテムを押したときのハンドラ */
   const handlePress: (id: string) => void = (id) => {
-    if (websocket.current != null) {
-      navigation.navigate("Room", { roomid: id, endpoint: endpoint });
-    }
+    setSelectedRoomId(id);
+    setIsVisibleRoomEnterConfirmDialog(true);
   };
 
+  /** 検索フィルタ */
   const searchFilter = (text: string) => {
     setIsLoading(true);
     setSearchInput(text);
@@ -118,6 +156,8 @@ export default function RoomListScreen({
       <ListItem.Chevron />
     </ListItem>
   );
+
+  /** フローティングアクション一覧 */
   const floadtingActions = [
     {
       text: "Create Room",
@@ -142,6 +182,87 @@ export default function RoomListScreen({
         navigation.navigate("CreateRoom", { endpoint: endpoint });
         break;
     }
+  };
+
+  const enterRoom = () => {
+    if (websocket.current != null && selectedRoomId != null) {
+      setIsVisibleRoomEnterConfirmDialog(false);
+      navigation.navigate("Room", {
+        roomid: selectedRoomId,
+        endpoint: endpoint,
+        cardIds: localDeckCardIds,
+      });
+    }
+  };
+
+  const onPickerValueChanged = async (itemValue: React.ReactText) => {
+    const selectedDeckId = parseInt(itemValue.toString());
+    // 2回呼ばれる対策
+    if (selectedDeckId === localDeckId) {
+      return;
+    }
+    if (Number.isNaN(selectedDeckId) && localDeckId == null) {
+      return;
+    }
+    // デッキを変更
+    if (Number.isNaN(selectedDeckId)) {
+      setLocalDeckId(undefined);
+      setLocalDeckCardIds([]);
+    } else {
+      if (localDeckId != null) {
+        setLocalDeckId(selectedDeckId);
+        const selectedLocalDeck = localDecks.filter(
+          (deck) => deck.id == selectedDeckId
+        )[0];
+        setLocalDeckCardIds(selectedLocalDeck.cardIds);
+      } else {
+        setLocalDeckId(selectedDeckId);
+        const selectedLocalDeck = localDecks.filter(
+          (deck) => deck.id == selectedDeckId
+        )[0];
+        setLocalDeckCardIds(selectedLocalDeck.cardIds);
+      }
+    }
+  };
+  const deckPicker = (
+    selectedId: number | string | undefined,
+    onPickerValueChanged: (
+      itemValue: React.ReactText,
+      itemIndex: number
+    ) => void,
+    pickerItems: Deck[]
+  ) => {
+    return (
+      <Picker
+        selectedValue={selectedId}
+        style={styles.picker}
+        onValueChange={onPickerValueChanged}
+      >
+        {/* <Picker.Item key="none" label="選択なし" value="none" /> */}
+        {pickerItems.map((pickerItem) => {
+          return (
+            <Picker.Item
+              key={pickerItem.id}
+              label={pickerItem.name}
+              value={pickerItem.id}
+            />
+          );
+        })}
+      </Picker>
+    );
+  };
+  const roomEnterConfirmDialog = () => {
+    return (
+      <Dialog.Container visible={isVisibleRoomEnterConfirmDialog}>
+        <Dialog.Title>デッキ選択</Dialog.Title>
+        {deckPicker(localDeckId, onPickerValueChanged, localDecks)}
+        <Dialog.Button
+          label="キャンセル"
+          onPress={() => setIsVisibleRoomEnterConfirmDialog(false)}
+        />
+        <Dialog.Button label="入室" onPress={enterRoom} />
+      </Dialog.Container>
+    );
   };
 
   return (
@@ -171,6 +292,7 @@ export default function RoomListScreen({
         color={"#03A9F4"}
         onPressItem={onPressFloadtingActionIcons}
       />
+      {roomEnterConfirmDialog()}
     </SafeAreaView>
   );
 }
@@ -189,6 +311,7 @@ const styles = StyleSheet.create({
     fontWeight: "400",
     paddingLeft: 10,
   },
+  picker: { width: 200 },
   subtitle: {
     flexDirection: "row",
     paddingLeft: 10,

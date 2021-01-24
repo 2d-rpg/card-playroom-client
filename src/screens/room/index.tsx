@@ -1,17 +1,53 @@
-import React, { ReactElement, useRef, useEffect } from "react";
-import { StyleSheet, View, Text, Animated, PanResponder } from "react-native";
+import React, { ReactElement, useRef, useEffect, useState } from "react";
+import {
+  StyleSheet,
+  View,
+  Text,
+  Animated,
+  PanResponder,
+  Dimensions,
+  ActivityIndicator,
+} from "react-native";
 // import { StackNavigationProp } from "@react-navigation/stack";
 import { RouteProp } from "@react-navigation/native";
 import { RootStackParamList } from "../../../App";
+import { gql, useQuery } from "@apollo/client";
+import Card from "../../components/Card";
+
+interface ServerCard {
+  id: number;
+  face: string;
+  back: string;
+}
+
+interface ServerCards {
+  cards: ServerCard[];
+}
+
+const GET_SERVER_CARDS = gql`
+  query {
+    cards {
+      id
+      face
+      back
+    }
+  }
+`;
+
+const windowHeight = Dimensions.get("window").height;
+const cardHeight = windowHeight / 3;
+const cardWidth = (cardHeight * 2) / 3;
 
 export default function RoomScreen({
   route,
 }: {
   route: RoomScreenRouteProp;
 }): ReactElement {
-  const { roomid, endpoint } = route.params;
+  const { roomid, endpoint, cardIds } = route.params;
   const pan = useRef(new Animated.ValueXY()).current;
   const websocket = useRef<WebSocket | null>(null);
+  const cardsQueryResult = useQuery<ServerCards>(GET_SERVER_CARDS);
+  const [firstCard, setFirstCard] = useState<ServerCard | null>(null);
   const panResponder = useRef(
     PanResponder.create({
       onMoveShouldSetPanResponder: () => true,
@@ -41,6 +77,24 @@ export default function RoomScreen({
       },
     })
   ).current;
+
+  // カードをサーバーからロード
+  useEffect(() => {
+    if (cardsQueryResult != null && !cardsQueryResult.loading) {
+      if (cardsQueryResult.error == null) {
+        const serverCards = cardsQueryResult.data?.cards;
+        if (serverCards != null) {
+          const firstOne = serverCards.find((card) => card.id === cardIds[0]);
+          console.log(`found: ${firstOne}`);
+          console.log(firstOne);
+          if (firstOne != null) {
+            setFirstCard(firstOne);
+            console.log(`set first card`);
+          }
+        }
+      }
+    }
+  }, [cardsQueryResult]);
 
   useEffect(() => {
     try {
@@ -72,6 +126,22 @@ export default function RoomScreen({
     };
   }, []);
 
+  const renderCard = () => {
+    const renderItem =
+      firstCard != null ? (
+        <Card
+          facePath={firstCard.face}
+          backPath={firstCard.back}
+          height={cardHeight}
+          width={cardWidth}
+          endpoint={endpoint}
+        />
+      ) : (
+        <ActivityIndicator />
+      );
+    return renderItem;
+  };
+
   // TODO WebSocket接続エラーの対応
   return (
     <View style={styles.container}>
@@ -82,7 +152,7 @@ export default function RoomScreen({
         }}
         {...panResponder.panHandlers}
       >
-        <View style={styles.box} />
+        {renderCard()}
       </Animated.View>
     </View>
   );
