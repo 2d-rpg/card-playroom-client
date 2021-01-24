@@ -8,7 +8,7 @@ import { useIsFocused } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { DEFAULT_ENDPOINT } from "../home/index";
 
-type Room = { name: string; id: number; num: number };
+type Room = { name: string; id: string; num: number };
 type RoomList = Room[];
 
 export default function RoomListScreen({
@@ -18,10 +18,10 @@ export default function RoomListScreen({
 }): ReactElement {
   const [isLoading, setIsLoading] = useState(true);
   const [displayData, setDisplayData] = useState<RoomList>([]);
-  const [text, setText] = useState("");
+  const [searchInput, setSearchInput] = useState("");
   const isFocused = useIsFocused();
   const [endpoint, setEndPoint] = useState<string>(DEFAULT_ENDPOINT);
-  const [data, setData] = useState<RoomList>([]);
+  const [roomListData, setRoomListData] = useState<RoomList>([]);
   const [updated, setUpdated] = useState(false);
   const websocket = useRef<WebSocket | null>(null);
 
@@ -38,12 +38,11 @@ export default function RoomListScreen({
         console.log(event.data);
         if (event.data.startsWith("{")) {
           const json = JSON.parse(event.data);
-          setData(json.data);
+          setRoomListData(json.data);
         }
       };
       return () => {
         if (websocket.current != null) {
-          console.log("websocket closed");
           websocket.current.close();
         }
       };
@@ -75,13 +74,13 @@ export default function RoomListScreen({
   }, [isFocused]);
 
   useEffect(() => {
-    if (typeof data != "undefined") {
-      setDisplayData(data);
+    if (typeof roomListData != "undefined") {
+      setDisplayData(roomListData);
       setIsLoading(false);
     }
-  }, [data]);
+  }, [roomListData]);
 
-  const handlePress: (id: number) => void = (id) => {
+  const handlePress: (id: string) => void = (id) => {
     if (websocket.current != null) {
       navigation.navigate("Room", { roomid: id, endpoint: endpoint });
     }
@@ -89,8 +88,8 @@ export default function RoomListScreen({
 
   const searchFilter = (text: string) => {
     setIsLoading(true);
-    setText(text);
-    const newData = data.filter((item: Room) => {
+    setSearchInput(text);
+    const newData = roomListData.filter((item: Room) => {
       const itemData = `${item.name.toUpperCase()} ${item.id}`;
 
       const textData = text.toUpperCase();
@@ -151,7 +150,7 @@ export default function RoomListScreen({
         lightTheme
         onChangeText={(text) => searchFilter(text)}
         autoCorrect={false}
-        value={text}
+        value={searchInput}
       />
       {isLoading ? (
         <ActivityIndicator />
