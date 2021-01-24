@@ -14,12 +14,6 @@ export default function CreateRoomScreen({
   route: CreateRoomScreenRouteProp;
   navigation: CreateRoomScreenNavigationProp;
 }): ReactElement {
-  // const [createRoom] = useMutation(CREATE_ROOM, {
-  //   onCompleted: (data) => {
-  //     console.log(data.createRoom.id);
-  //     navigation.navigate("Room", { id: data.createRoom.id });
-  //   },
-  // });
   const { endpoint } = route.params;
   const websocket = useRef<WebSocket | null>(null);
 
