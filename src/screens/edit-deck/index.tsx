@@ -400,9 +400,12 @@ export default function EditDeckScreen(): ReactElement {
           ></FlatList>
         );
       } else {
+        let isIncludeNotFound = false;
         const flatListItems = cardIds.map((cardId, index) => {
           const selectedCard = cards.find((card) => card.id == cardId);
           if (selectedCard == null) {
+            //* HACK: map()内で他の変数が変化するのは良くない
+            isIncludeNotFound = true;
             return {
               id: index,
               cardId: cardId,
@@ -419,13 +422,18 @@ export default function EditDeckScreen(): ReactElement {
           }
         });
         return (
-          <FlatList
-            style={styles.flatList}
-            data={flatListItems}
-            renderItem={renderItem}
-            keyExtractor={(item) => item.id.toString()}
-            horizontal={true}
-          ></FlatList>
+          <React.Fragment>
+            {isIncludeNotFound && (
+              <Text>一部のカードの読み込みに失敗しました</Text>
+            )}
+            <FlatList
+              style={styles.flatList}
+              data={flatListItems}
+              renderItem={renderItem}
+              keyExtractor={(item) => item.id.toString()}
+              horizontal={true}
+            ></FlatList>
+          </React.Fragment>
         );
       }
     };
