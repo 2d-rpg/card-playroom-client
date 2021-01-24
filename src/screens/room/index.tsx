@@ -52,7 +52,7 @@ export default function RoomScreen({
       // イベント受け取り
       websocket.current.onmessage = (event) => {
         console.log("received event:" + event.data);
-        if (event.data.startsWith("{")) {
+        if (event.data.startsWith('{"x')) {
           // TODO サーバ側ですべてjson parsableになるよう実装
           const data = JSON.parse(event.data);
           pan.setValue({ x: data.x, y: data.y });

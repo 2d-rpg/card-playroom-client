@@ -38,7 +38,7 @@ export default function RoomListScreen({
         console.log(event.data);
         if (event.data.startsWith("{")) {
           const json = JSON.parse(event.data);
-          setRoomListData(json.data);
+          setRoomListData(json.data.rooms);
         }
       };
       return () => {

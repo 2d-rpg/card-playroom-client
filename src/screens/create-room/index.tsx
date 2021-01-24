@@ -22,7 +22,6 @@ export default function CreateRoomScreen({
   // });
   const { endpoint } = route.params;
   const websocket = useRef<WebSocket | null>(null);
-  const [exists, setExists] = useState(false);
 
   useEffect(() => {
     websocket.current = new WebSocket(`ws://${endpoint}/ws`);
@@ -30,13 +29,10 @@ export default function CreateRoomScreen({
       if (event.data.startsWith("{")) {
         const json = JSON.parse(event.data);
         if (json.status === "ok") {
-          setExists(false);
           navigation.navigate("Room", {
             roomid: json.data.id,
             endpoint: endpoint,
           });
-        } else {
-          setExists(true);
         }
       }
     };
@@ -85,25 +81,13 @@ export default function CreateRoomScreen({
             <View>
               {errors.name && touched.name ? <Text>{errors.name}</Text> : null}
             </View>
-            {exists ? (
-              <Input
-                label="新規ルーム名"
-                value={values.name}
-                onChangeText={handleChange("name")}
-                onBlur={handleBlur("name")}
-                errorMessage="既に存在するルーム名です"
-                errorStyle={{ color: "red" }}
-                placeholder="ルーム名を入力してください"
-              />
-            ) : (
-              <Input
-                label="新規ルーム名"
-                value={values.name}
-                onChangeText={handleChange("name")}
-                onBlur={handleBlur("name")}
-                placeholder="ルーム名を入力してください"
-              />
-            )}
+            <Input
+              label="新規ルーム名"
+              value={values.name}
+              onChangeText={handleChange("name")}
+              onBlur={handleBlur("name")}
+              placeholder="ルーム名を入力してください"
+            />
             <Button
               title="Submit"
               onPress={() => handleSubmit()}
