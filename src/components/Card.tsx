@@ -2,8 +2,8 @@ import React, { ReactElement } from "react";
 import { Image } from "react-native";
 
 export default function Card(props: {
-  facePath: string;
-  backPath: string;
+  facePath: string | undefined;
+  backPath: string | undefined;
   width: number;
   height: number;
   endpoint: string;

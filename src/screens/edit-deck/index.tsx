@@ -221,8 +221,8 @@ export default function EditDeckScreen(): ReactElement {
     type renderedCard = {
       id: number;
       cardId: number;
-      facePath: string;
-      backPath: string;
+      facePath: string | undefined;
+      backPath: string | undefined;
     };
 
     // サーバーのデッキのカードの描画
@@ -308,10 +308,12 @@ export default function EditDeckScreen(): ReactElement {
         setServerDeckCardIds([]);
       } else {
         setServerDeckId(selectedServerId);
-        const selectedDeck = serverDecks.filter(
+        const selectedDeck = serverDecks.find(
           (serverDeck) => serverDeck.id == parseInt(selectedServerId)
-        )[0];
-        setServerDeckCardIds(selectedDeck.cardIds);
+        );
+        if (selectedDeck != null) {
+          setServerDeckCardIds(selectedDeck.cardIds);
+        }
       }
     };
 
@@ -334,16 +336,20 @@ export default function EditDeckScreen(): ReactElement {
       } else {
         if (localDeckId != null) {
           setLocalDeckId(selectedDeckId);
-          const selectedLocalDeck = localDecks.filter(
+          const selectedLocalDeck = localDecks.find(
             (deck) => deck.id == selectedDeckId
-          )[0];
-          setLocalDeckCardIds(selectedLocalDeck.cardIds);
+          );
+          if (selectedLocalDeck != null) {
+            setLocalDeckCardIds(selectedLocalDeck.cardIds);
+          }
         } else {
           setLocalDeckId(selectedDeckId);
-          const selectedLocalDeck = localDecks.filter(
+          const selectedLocalDeck = localDecks.find(
             (deck) => deck.id == selectedDeckId
-          )[0];
-          setLocalDeckCardIds(selectedLocalDeck.cardIds);
+          );
+          if (selectedLocalDeck != null) {
+            setLocalDeckCardIds(selectedLocalDeck.cardIds);
+          }
         }
       }
     };
@@ -395,16 +401,22 @@ export default function EditDeckScreen(): ReactElement {
         );
       } else {
         const flatListItems = cardIds.map((cardId, index) => {
-          // * NOTE filter()[0]は普通存在するが存在しない場合
-          // * NOTE filter()[0]はundefinedになりうるので型安全でない
-          // * NOTE 他のfilter[0]も同様
-          const selectedCard = cards.filter((card) => card.id == cardId)[0];
-          return {
-            id: index,
-            cardId: cardId,
-            facePath: selectedCard.face,
-            backPath: selectedCard.back,
-          };
+          const selectedCard = cards.find((card) => card.id == cardId);
+          if (selectedCard == null) {
+            return {
+              id: index,
+              cardId: cardId,
+              facePath: undefined,
+              backPath: undefined,
+            };
+          } else {
+            return {
+              id: index,
+              cardId: cardId,
+              facePath: selectedCard.face,
+              backPath: selectedCard.back,
+            };
+          }
         });
         return (
           <FlatList
@@ -449,9 +461,9 @@ export default function EditDeckScreen(): ReactElement {
       setIsVisibleDeckDeleteConfirmDialog(true);
     };
     const deckDeleteConfirmDialog = () => {
-      const selectedDeck = localDecks
-        .filter((localDeck) => localDeck.id == localDeckId)
-        .pop();
+      const selectedDeck = localDecks.find(
+        (localDeck) => localDeck.id == localDeckId
+      );
       if (selectedDeck != null) {
         return (
           <Dialog.Container visible={isVisibleDeckDeleteConfirmDialog}>
@@ -469,27 +481,31 @@ export default function EditDeckScreen(): ReactElement {
     // デッキ名変更
     const saveDeckName = async () => {
       if (localDeckId != null) {
-        const selectedDeck = localDecks.filter(
+        const selectedDeck = localDecks.find(
           (localDeck) => localDeck.id == localDeckId
-        )[0];
-        selectedDeck.name = deckName;
-        setLocalDecks(localDecks);
-        const deckRepository = getRepository(Deck);
-        await deckRepository.update({ id: localDeckId }, { name: deckName });
+        );
+        if (selectedDeck != null) {
+          selectedDeck.name = deckName;
+          setLocalDecks(localDecks);
+          const deckRepository = getRepository(Deck);
+          await deckRepository.update({ id: localDeckId }, { name: deckName });
+        }
       }
       setIsVisibleDeckNameChangeDialog(false);
     };
     const showDeckNameChangeDialog = () => {
-      const selectedDeck = localDecks.filter(
+      const selectedDeck = localDecks.find(
         (localDeck) => localDeck.id == localDeckId
-      )[0];
-      setDeckName(selectedDeck.name);
+      );
+      if (selectedDeck != null) {
+        setDeckName(selectedDeck.name);
+      }
       setIsVisibleDeckNameChangeDialog(true);
     };
     const deckNameChangeDialog = () => {
-      const selectedDeck = localDecks
-        .filter((localDeck) => localDeck.id == localDeckId)
-        .pop();
+      const selectedDeck = localDecks.find(
+        (localDeck) => localDeck.id == localDeckId
+      );
       if (selectedDeck != null) {
         return (
           <Dialog.Container visible={isVisibleDeckNameChangeDialog}>
