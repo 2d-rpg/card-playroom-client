@@ -9,17 +9,30 @@ export default function Card(props: {
   endpoint: string;
 }): ReactElement {
   // TODO ズームイン，ズームアウト時の拡大縮小に対応
-  // TODO 画像読み込み失敗時の対応
-  return (
-    <Image
-      style={{
-        width: props.width,
-        height: props.height,
-      }}
-      resizeMode={"contain"}
-      source={{
-        uri: `http://${props.endpoint}${props.facePath}`,
-      }}
-    />
-  );
+  // TODO 背面画像の対応
+  if (props.facePath == null) {
+    return (
+      <Image
+        style={{
+          width: props.width,
+          height: props.height,
+        }}
+        resizeMode={"contain"}
+        source={require("../../assets/not_found.png")}
+      />
+    );
+  } else {
+    return (
+      <Image
+        style={{
+          width: props.width,
+          height: props.height,
+        }}
+        resizeMode={"contain"}
+        source={{
+          uri: `http://${props.endpoint}${props.facePath}`,
+        }}
+      />
+    );
+  }
 }
