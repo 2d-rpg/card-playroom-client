@@ -1,5 +1,11 @@
 import React, { ReactElement, useState, useEffect, useRef } from "react";
-import { StyleSheet, View, FlatList, ActivityIndicator } from "react-native";
+import {
+  StyleSheet,
+  SafeAreaView,
+  FlatList,
+  ActivityIndicator,
+  RefreshControl,
+} from "react-native";
 import { SearchBar, ListItem, Icon } from "react-native-elements";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../../../App";
@@ -119,32 +125,27 @@ export default function RoomListScreen({
       name: "createRoom",
       position: 1,
     },
-    {
-      text: "Update List",
-      icon: <Icon color="#FFFFFF" type="antdesign" name="reload1" />,
-      name: "updateList",
-      position: 2,
-    },
   ];
+
+  const onRefresh = () => {
+    if (
+      websocket.current != null &&
+      websocket.current.readyState == WebSocket.OPEN
+    ) {
+      websocket.current.send("/list");
+    }
+  };
 
   const onPressFloadtingActionIcons = (name: string | undefined) => {
     switch (name) {
       case "createRoom":
         navigation.navigate("CreateRoom", { endpoint: endpoint });
         break;
-      case "updateList":
-        if (
-          websocket.current != null &&
-          websocket.current.readyState == WebSocket.OPEN
-        ) {
-          websocket.current.send("/list");
-        }
-        break;
     }
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <SearchBar
         placeholder="ルーム検索"
         lightTheme
@@ -159,6 +160,9 @@ export default function RoomListScreen({
           keyExtractor={keyExtractor}
           data={displayData}
           renderItem={renderItem}
+          refreshControl={
+            <RefreshControl refreshing={isLoading} onRefresh={onRefresh} />
+          }
         />
       )}
       <FloatingAction
@@ -167,7 +171,7 @@ export default function RoomListScreen({
         color={"#03A9F4"}
         onPressItem={onPressFloadtingActionIcons}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
