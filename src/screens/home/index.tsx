@@ -1,10 +1,10 @@
 import { StatusBar } from "expo-status-bar";
 import React, { ReactElement, useState, useEffect } from "react";
-import { StyleSheet, View, TextInput } from "react-native";
+import { StyleSheet, View } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Text } from "react-native-elements";
+import { Input } from "react-native-elements";
 
-const DEFAULT_ENDPOINT = "127.0.0.1";
+export const DEFAULT_ENDPOINT = "127.0.0.1";
 export default function HomeScreen(): ReactElement {
   const [endpoint, setEndpoint] = useState(DEFAULT_ENDPOINT);
   useEffect(() => {
@@ -34,8 +34,8 @@ export default function HomeScreen(): ReactElement {
   // TODO ユーザーに関する情報（ユーザーアイコン，ユーザーネーム）の実装
   return (
     <View style={styles.container}>
-      <Text>サーバーアドレス</Text>
-      <TextInput
+      <Input
+        label="サーバーアドレス"
         style={styles.input}
         onChangeText={(input) => setEndpoint(input)}
         value={endpoint}
@@ -52,7 +52,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   input: {
-    width: "50%",
     borderWidth: 1,
     borderColor: "#ccc",
   },

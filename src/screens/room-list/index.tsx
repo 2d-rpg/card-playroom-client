@@ -1,65 +1,102 @@
-import React, { ReactElement, useState, useEffect } from "react";
-import { StyleSheet, View, FlatList, ActivityIndicator } from "react-native";
-import { SearchBar, ListItem } from "react-native-elements";
+import React, { ReactElement, useState, useEffect, useRef } from "react";
+import {
+  StyleSheet,
+  SafeAreaView,
+  FlatList,
+  ActivityIndicator,
+  RefreshControl,
+} from "react-native";
+import { SearchBar, ListItem, Icon } from "react-native-elements";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../../../App";
-import { gql, useQuery, useMutation } from "@apollo/client";
 import { FloatingAction } from "react-native-floating-action";
-import { Icon } from "react-native-elements";
+import { useIsFocused } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { DEFAULT_ENDPOINT } from "../home/index";
 
-const ROOMS_QUERY = gql`
-  query {
-    rooms {
-      id
-      name
-    }
-  }
-`;
-
-const ENTER_ROOM = gql`
-  mutation EnterRoom($player: String!, $roomId: Int!) {
-    enterRoom(player: $player, roomId: $roomId) {
-      id
-      name
-      players
-    }
-  }
-`;
+type Room = { name: string; id: string; num: number };
+type RoomList = Room[];
 
 export default function RoomListScreen({
   navigation,
 }: {
   navigation: RoomListScreenNavigationProp;
 }): ReactElement {
-  const [isLoading, setLoading] = useState(true);
-  const [displayData, setDisplayData] = useState([]);
-  const [result, setResult] = useState([]);
-  const [text, setText] = useState("");
-  const { data, loading, error } = useQuery(ROOMS_QUERY);
-  const [enterRoom] = useMutation(ENTER_ROOM, {
-    onCompleted: (data) => {
-      console.log(data.enterRoom.id);
-      navigation.navigate("Room", { id: data.enterRoom.id });
-    },
-  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [displayData, setDisplayData] = useState<RoomList>([]);
+  const [searchInput, setSearchInput] = useState("");
+  const isFocused = useIsFocused();
+  const [endpoint, setEndPoint] = useState<string>(DEFAULT_ENDPOINT);
+  const [roomListData, setRoomListData] = useState<RoomList>([]);
+  const [updated, setUpdated] = useState(false);
+  const websocket = useRef<WebSocket | null>(null);
 
   useEffect(() => {
-    if (typeof data != "undefined") {
-      setDisplayData(data.rooms);
-      setResult(data.rooms);
-      setLoading(loading);
+    if (updated) {
+      websocket.current = new WebSocket(`ws://${endpoint}/ws`);
+      websocket.current.onopen = () => {
+        console.log("opened");
+        if (websocket.current != null) {
+          websocket.current.send("/list");
+        }
+      };
+      websocket.current.onmessage = (event) => {
+        console.log(event.data);
+        if (event.data.startsWith("{")) {
+          const json = JSON.parse(event.data);
+          setRoomListData(json.data.rooms);
+        }
+      };
+      return () => {
+        if (websocket.current != null) {
+          websocket.current.close();
+        }
+      };
     }
-  }, [data]);
+  }, [updated]);
+
+  const getEndPoint = async () => {
+    let endpointFromPreferences = DEFAULT_ENDPOINT;
+    try {
+      endpointFromPreferences =
+        (await AsyncStorage.getItem("@endpoint")) || DEFAULT_ENDPOINT;
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setEndPoint(endpointFromPreferences);
+      setUpdated(true);
+    }
+  };
+
+  useEffect(() => {
+    if (isFocused) {
+      setIsLoading(true);
+      getEndPoint();
+    }
+    return () => {
+      setUpdated(false);
+      console.log("set updated false");
+    };
+  }, [isFocused]);
+
+  useEffect(() => {
+    if (typeof roomListData != "undefined") {
+      setDisplayData(roomListData);
+      setIsLoading(false);
+    }
+  }, [roomListData]);
 
   const handlePress: (id: string) => void = (id) => {
-    enterRoom({ variables: { player: "", roomId: parseInt(id) } });
+    if (websocket.current != null) {
+      navigation.navigate("Room", { roomid: id, endpoint: endpoint });
+    }
   };
 
   const searchFilter = (text: string) => {
-    setLoading(true);
-    setText(text);
-    const newData = result.filter((item: { name: string; id: string }) => {
-      const itemData = `${item.name.toUpperCase()} ${item.id.toUpperCase()}`;
+    setIsLoading(true);
+    setSearchInput(text);
+    const newData = roomListData.filter((item: Room) => {
+      const itemData = `${item.name.toUpperCase()} ${item.id}`;
 
       const textData = text.toUpperCase();
 
@@ -67,13 +104,12 @@ export default function RoomListScreen({
     });
 
     setDisplayData(newData);
-    setLoading(false);
+    setIsLoading(false);
   };
 
-  const keyExtractor = (_item: { name: string; id: string }, index: number) =>
-    index.toString();
+  const keyExtractor = (_item: Room, index: number) => index.toString();
 
-  const renderItem = ({ item }: { item: { name: string; id: string } }) => (
+  const renderItem = ({ item }: { item: Room }) => (
     <ListItem bottomDivider onPress={() => handlePress(item.id)}>
       <ListItem.Content>
         <ListItem.Title style={styles.title}>{item.name}</ListItem.Title>
@@ -91,16 +127,31 @@ export default function RoomListScreen({
     },
   ];
 
-  if (error) console.log(error.message);
+  const onRefresh = () => {
+    if (
+      websocket.current != null &&
+      websocket.current.readyState == WebSocket.OPEN
+    ) {
+      websocket.current.send("/list");
+    }
+  };
+
+  const onPressFloadtingActionIcons = (name: string | undefined) => {
+    switch (name) {
+      case "createRoom":
+        navigation.navigate("CreateRoom", { endpoint: endpoint });
+        break;
+    }
+  };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <SearchBar
         placeholder="ルーム検索"
         lightTheme
         onChangeText={(text) => searchFilter(text)}
         autoCorrect={false}
-        value={text}
+        value={searchInput}
       />
       {isLoading ? (
         <ActivityIndicator />
@@ -109,15 +160,18 @@ export default function RoomListScreen({
           keyExtractor={keyExtractor}
           data={displayData}
           renderItem={renderItem}
+          refreshControl={
+            <RefreshControl refreshing={isLoading} onRefresh={onRefresh} />
+          }
         />
       )}
       <FloatingAction
-        overrideWithAction={true}
+        // overrideWithAction={true}
         actions={floadtingActions}
         color={"#03A9F4"}
-        onPressItem={() => navigation.navigate("CreateRoom")}
+        onPressItem={onPressFloadtingActionIcons}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
