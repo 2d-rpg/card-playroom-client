@@ -37,7 +37,25 @@ const customFetch = async (uri: string, options: RequestInit) => {
   }
 };
 const client = new ApolloClient({
-  cache: new InMemoryCache(),
+  cache: new InMemoryCache({
+    // サーバー側のデータが消去されていてキャッシュとコンフリクトした時の警告を表示しない
+    typePolicies: {
+      Query: {
+        fields: {
+          cards: {
+            merge(_existing, incoming) {
+              return incoming;
+            },
+          },
+          decksWithCards: {
+            merge(_existing, incoming) {
+              return incoming;
+            },
+          },
+        },
+      },
+    },
+  }),
   link: new HttpLink({ fetch: customFetch }),
   uri: "/graphql",
 });
