@@ -10,3 +10,5 @@ RUN apt update \
     && apt autoremove -y \
     && apt clean -y \
     && rm -rf /var/lib/apt/lists/* \
+
+ENV CHOKIDAR_USEPOLLING=true
