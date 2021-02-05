@@ -12,7 +12,6 @@ import { RouteProp } from "@react-navigation/native";
 import { RootStackParamList } from "../../../App";
 import { gql, useQuery } from "@apollo/client";
 import MovableCard from "../../components/MovableCard";
-import { log } from "console";
 
 interface ServerCard {
   id: number;
