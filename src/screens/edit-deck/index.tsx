@@ -238,7 +238,10 @@ export default function EditDeckScreen(): ReactElement {
       // 下スワイプでローカルのデッキにカードを追加
       const onSwipeDown = async () => {
         if (localDeckCardIds != null && localDeckId != null) {
-          const copyTempDeckCardIds = [...localDeckCardIds, item.cardId].sort();
+          // 昇順にソート
+          const copyTempDeckCardIds = [...localDeckCardIds, item.cardId].sort(
+            (a, b) => a - b
+          );
           setLocalDeckCardIds(copyTempDeckCardIds);
           await updateLocalDeck(localDeckId, copyTempDeckCardIds);
         }
