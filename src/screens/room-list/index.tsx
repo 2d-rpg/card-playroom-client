@@ -211,6 +211,7 @@ export default function RoomListScreen({
       }
     }
   };
+  // TODO サーバー側のデッキを選べるようにする
   const deckPicker = (
     selectedId: number | string | undefined,
     onPickerValueChanged: (
@@ -225,7 +226,6 @@ export default function RoomListScreen({
         style={styles.picker}
         onValueChange={onPickerValueChanged}
       >
-        {/* <Picker.Item key="none" label="選択なし" value="none" /> */}
         {pickerItems.map((pickerItem) => {
           return (
             <Picker.Item
