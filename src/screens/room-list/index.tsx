@@ -35,7 +35,6 @@ export default function RoomListScreen({
   const isFocused = useIsFocused();
   const [endpoint, setEndPoint] = useState<string>(DEFAULT_ENDPOINT);
   const [roomListData, setRoomListData] = useState<Room[]>([]);
-  const [updated, setUpdated] = useState(false);
   const websocket = useRef<WebSocket | null>(null);
   const [
     isVisibleRoomEnterConfirmDialog,
@@ -49,24 +48,11 @@ export default function RoomListScreen({
   const [localDeckCardIds, setLocalDeckCardIds] = useState<number[]>([]);
 
   useEffect(() => {
-    if (updated) {
-      // WebSocket作成
-      websocket.current = new WebSocket(`ws://${endpoint}/ws`);
-      websocket.current.onopen = () => {
-        console.log("opened");
-        if (websocket.current != null) {
-          websocket.current.send("/list");
-        }
-      };
-      websocket.current.onmessage = (event) => {
-        console.log(event.data);
-        if (event.data.startsWith("{")) {
-          const json = JSON.parse(event.data);
-          setRoomListData(json.data.rooms);
-        }
-      };
-      // ローカルデッキ取得
+    if (isFocused) {
       (async () => {
+        setIsLoading(true);
+
+        // ローカルに保存されているデッキの取得
         const connectionManager = getConnectionManager();
         if (connectionManager.connections.length == 0) {
           await createConnection({
@@ -80,34 +66,8 @@ export default function RoomListScreen({
         const deckRepository = getRepository(Deck);
         const loadedDecks = await deckRepository.find();
         setLocalDecks(loadedDecks);
-      })();
-      return () => {
-        // WebSocket切断
-        if (websocket.current != null) {
-          websocket.current.close();
-        }
-      };
-    }
-  }, [updated]);
 
-  /** WebSocketのエンドポイント取得 */
-  const getEndPoint = async () => {
-    let endpointFromPreferences = DEFAULT_ENDPOINT;
-    try {
-      endpointFromPreferences =
-        (await AsyncStorage.getItem("@endpoint")) || DEFAULT_ENDPOINT;
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setEndPoint(endpointFromPreferences);
-      setUpdated(true);
-    }
-  };
-
-  useEffect(() => {
-    if (isFocused) {
-      (async () => {
-        setIsLoading(true);
+        // websocketエンドポイントの取得
         try {
           const endpointFromPreferences = await AsyncStorage.getItem(
             "@endpoint"
@@ -118,11 +78,28 @@ export default function RoomListScreen({
         } catch (error) {
           console.log(error);
         }
+
+        // websocketの初期化
+        websocket.current = new WebSocket(`ws://${endpoint}/ws`);
+        websocket.current.onopen = () => {
+          console.log("opened");
+          if (websocket.current != null) {
+            websocket.current.send("/list");
+          }
+        };
+        websocket.current.onmessage = (event) => {
+          console.log(event.data);
+          if (event.data.startsWith("{")) {
+            const json = JSON.parse(event.data);
+            setRoomListData(json.data.rooms);
+          }
+        };
       })();
     }
     return () => {
-      setUpdated(false);
-      console.log("set updated false");
+      if (websocket.current != null) {
+        websocket.current.close();
+      }
     };
   }, [isFocused]);
 
