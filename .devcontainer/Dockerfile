@@ -11,4 +11,5 @@ RUN apt update \
     && apt clean -y \
     && rm -rf /var/lib/apt/lists/* \
 
+# ホットリロードのため
 ENV CHOKIDAR_USEPOLLING=true
