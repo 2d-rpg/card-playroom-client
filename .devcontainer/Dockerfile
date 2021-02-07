@@ -10,6 +10,3 @@ RUN apt update \
     && apt autoremove -y \
     && apt clean -y \
     && rm -rf /var/lib/apt/lists/* \
-
-# ホットリロードのため
-ENV CHOKIDAR_USEPOLLING=true
