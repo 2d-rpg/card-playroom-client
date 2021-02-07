@@ -23,7 +23,6 @@ import {
 } from "typeorm/browser";
 
 type Room = { name: string; id: string; num: number };
-type RoomList = Room[];
 
 export default function RoomListScreen({
   navigation,
@@ -31,11 +30,11 @@ export default function RoomListScreen({
   navigation: RoomListScreenNavigationProp;
 }): ReactElement {
   const [isLoading, setIsLoading] = useState(true);
-  const [displayData, setDisplayData] = useState<RoomList>([]);
+  const [displayData, setDisplayData] = useState<Room[]>([]);
   const [searchInput, setSearchInput] = useState("");
   const isFocused = useIsFocused();
   const [endpoint, setEndPoint] = useState<string>(DEFAULT_ENDPOINT);
-  const [roomListData, setRoomListData] = useState<RoomList>([]);
+  const [roomListData, setRoomListData] = useState<Room[]>([]);
   const [updated, setUpdated] = useState(false);
   const websocket = useRef<WebSocket | null>(null);
   const [
@@ -107,8 +106,19 @@ export default function RoomListScreen({
 
   useEffect(() => {
     if (isFocused) {
-      setIsLoading(true);
-      getEndPoint();
+      (async () => {
+        setIsLoading(true);
+        try {
+          const endpointFromPreferences = await AsyncStorage.getItem(
+            "@endpoint"
+          );
+          if (endpointFromPreferences != null) {
+            setEndPoint(endpointFromPreferences);
+          }
+        } catch (error) {
+          console.log(error);
+        }
+      })();
     }
     return () => {
       setUpdated(false);
