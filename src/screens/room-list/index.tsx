@@ -4,7 +4,6 @@ import {
   SafeAreaView,
   FlatList,
   ActivityIndicator,
-  RefreshControl,
 } from "react-native";
 import { SearchBar, ListItem, Icon } from "react-native-elements";
 import { StackNavigationProp } from "@react-navigation/stack";
@@ -51,7 +50,6 @@ export default function RoomListScreen({
     if (isFocused) {
       (async () => {
         setIsLoading(true);
-
         // ローカルに保存されているデッキの取得
         const connectionManager = getConnectionManager();
         if (connectionManager.connections.length == 0) {
@@ -89,9 +87,11 @@ export default function RoomListScreen({
         };
         websocket.current.onmessage = (event) => {
           console.log(event.data);
-          if (event.data.startsWith("{")) {
+          try {
             const json = JSON.parse(event.data);
             setRoomListData(json.data.rooms);
+          } catch (error) {
+            console.log(error);
           }
         };
       })();
@@ -154,7 +154,7 @@ export default function RoomListScreen({
     },
   ];
 
-  const onRefresh = () => {
+  const requestRoomList = () => {
     if (
       websocket.current != null &&
       websocket.current.readyState == WebSocket.OPEN
@@ -268,9 +268,8 @@ export default function RoomListScreen({
           keyExtractor={keyExtractor}
           data={displayData}
           renderItem={renderItem}
-          refreshControl={
-            <RefreshControl refreshing={isLoading} onRefresh={onRefresh} />
-          }
+          onRefresh={requestRoomList}
+          refreshing={isLoading}
         />
       )}
       <FloatingAction
