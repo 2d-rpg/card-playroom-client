@@ -20,8 +20,12 @@ import {
   getRepository,
   getConnectionManager,
 } from "typeorm/browser";
-
-type Room = { name: string; id: string; num: number };
+import {
+  Room,
+  isGetRoomListMessage,
+  WsMessage,
+  isEnterRoomMessage,
+} from "../../@types/ws-message";
 
 export default function RoomListScreen({
   navigation,
@@ -87,11 +91,13 @@ export default function RoomListScreen({
         };
         websocket.current.onmessage = (event) => {
           console.log(event.data);
-          try {
-            const json = JSON.parse(event.data);
-            setRoomListData(json.data.rooms);
-          } catch (error) {
-            console.log(error);
+          const json: WsMessage = JSON.parse(event.data);
+          if (isGetRoomListMessage(json)) {
+            setRoomListData(json.data);
+          } else {
+            console.log(
+              `Unexpected Event. Status: ${json.status}; Event: ${json.event}`
+            );
           }
         };
       })();

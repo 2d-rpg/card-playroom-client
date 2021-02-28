@@ -14,6 +14,7 @@ import {
   getRepository,
   getConnectionManager,
 } from "typeorm/browser";
+import { Room, isCreateRoomMessage } from "../../@types/ws-message";
 
 export default function CreateRoomScreen({
   route,
@@ -39,16 +40,18 @@ export default function CreateRoomScreen({
     // websocketの初期化
     websocket.current = new WebSocket(`ws://${endpoint}/ws`);
     websocket.current.onmessage = (event) => {
-      try {
-        const json = JSON.parse(event.data);
+      const json = JSON.parse(event.data);
+      if (isCreateRoomMessage(json)) {
         setIsVisibleRoomEnterConfirmDialog(false);
         navigation.navigate("Room", {
           roomid: json.data.id,
           endpoint: endpoint,
           cardIds: localDeckCardIds,
         });
-      } catch (error) {
-        console.log(error);
+      } else {
+        console.log(
+          `Unexpected Event. Status: ${json.status}; Event: ${json.event}`
+        );
       }
     };
 
@@ -121,7 +124,6 @@ export default function CreateRoomScreen({
         style={styles.picker}
         onValueChange={onPickerValueChanged}
       >
-        {/* <Picker.Item key="none" label="選択なし" value="none" /> */}
         {pickerItems.map((pickerItem) => {
           return (
             <Picker.Item
