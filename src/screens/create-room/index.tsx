@@ -14,7 +14,7 @@ import {
   getRepository,
   getConnectionManager,
 } from "typeorm/browser";
-import { Room, isCreateRoomMessage } from "../../@types/ws-message";
+import { isCreateRoomMessage, WsMessage } from "../../utils/ws-message";
 
 export default function CreateRoomScreen({
   route,
@@ -40,7 +40,7 @@ export default function CreateRoomScreen({
     // websocketの初期化
     websocket.current = new WebSocket(`ws://${endpoint}/ws`);
     websocket.current.onmessage = (event) => {
-      const json = JSON.parse(event.data);
+      const json: WsMessage = JSON.parse(event.data);
       if (isCreateRoomMessage(json)) {
         setIsVisibleRoomEnterConfirmDialog(false);
         navigation.navigate("Room", {
@@ -50,7 +50,7 @@ export default function CreateRoomScreen({
         });
       } else {
         console.log(
-          `Unexpected Event. Status: ${json.status}; Event: ${json.event}`
+          `Unexpected Event. Status: ${json.status}; Event: ${json.event}; Data: ${json.data}`
         );
       }
     };

@@ -20,12 +20,7 @@ import {
   getRepository,
   getConnectionManager,
 } from "typeorm/browser";
-import {
-  Room,
-  isGetRoomListMessage,
-  WsMessage,
-  isEnterRoomMessage,
-} from "../../@types/ws-message";
+import { Room, isGetRoomListMessage, WsMessage } from "../../utils/ws-message";
 
 export default function RoomListScreen({
   navigation,
@@ -96,7 +91,7 @@ export default function RoomListScreen({
             setRoomListData(json.data);
           } else {
             console.log(
-              `Unexpected Event. Status: ${json.status}; Event: ${json.event}`
+              `Unexpected Event. Status: ${json.status}; Event: ${json.event}; Data: ${json.data}`
             );
           }
         };
