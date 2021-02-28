@@ -49,6 +49,7 @@ export default function CreateRoomScreen({
           cardIds: localDeckCardIds,
         });
       } else {
+        // TODO ルームに入ったら切断されるようにする
         console.log(
           `Unexpected Event. Status: ${json.status}; Event: ${json.event}; Data: ${json.data}`
         );
