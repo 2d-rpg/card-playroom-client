@@ -19,19 +19,19 @@ export interface GetRoomListMessage extends WsMessage {
   data: Room[];
 }
 export const isGetRoomListMessage = (arg: any): arg is GetRoomListMessage => {
-  return arg.status === "ok" && arg.event === "GetRoomList";
+  return arg.status === "Ok" && arg.event === "GetRoomList";
 };
 
 export interface EnterRoomMessage extends WsMessage {
   data: Room;
 }
 export const isEnterRoomMessage = (arg: any): arg is EnterRoomMessage => {
-  return arg.status === "ok" && arg.event === "EnterRoom";
+  return arg.status === "Ok" && arg.event === "EnterRoom";
 };
 
 export interface CreateRoomMessage extends WsMessage {
   data: Room;
 }
 export const isCreateRoomMessage = (arg: any): arg is CreateRoomMessage => {
-  return arg.status === "ok" && arg.event === "CreateRoom";
+  return arg.status === "Ok" && arg.event === "CreateRoom";
 };
