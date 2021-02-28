@@ -157,6 +157,8 @@ export default function RoomScreen({
       />
     );
 
+  // TODO 退出後再入室するとカードが表示されない
+  // TODO 他の人が入ってきたときその人のカードが表示されない
   const renderOpponentCard = (opponentCard: ServerCard | null) =>
     !opponentCard ? (
       <ActivityIndicator />

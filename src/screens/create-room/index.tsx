@@ -14,6 +14,7 @@ import {
   getRepository,
   getConnectionManager,
 } from "typeorm/browser";
+import { isCreateRoomMessage, WsMessage } from "../../utils/ws-message";
 
 export default function CreateRoomScreen({
   route,
@@ -28,7 +29,7 @@ export default function CreateRoomScreen({
     isVisibleRoomEnterConfirmDialog,
     setIsVisibleRoomEnterConfirmDialog,
   ] = useState(false);
-  const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
+  const [roomName, setRoomName] = useState("");
   const [localDeckId, setLocalDeckId] = useState<number | string | undefined>(
     undefined
   );
@@ -36,16 +37,25 @@ export default function CreateRoomScreen({
   const [localDeckCardIds, setLocalDeckCardIds] = useState<number[]>([]);
 
   useEffect(() => {
+    // websocketの初期化
     websocket.current = new WebSocket(`ws://${endpoint}/ws`);
     websocket.current.onmessage = (event) => {
-      if (event.data.startsWith("{")) {
-        const json = JSON.parse(event.data);
-        if (json.status === "ok") {
-          setSelectedRoomId(json.data.id);
-          setIsVisibleRoomEnterConfirmDialog(true);
-        }
+      const json: WsMessage = JSON.parse(event.data);
+      if (isCreateRoomMessage(json)) {
+        setIsVisibleRoomEnterConfirmDialog(false);
+        navigation.navigate("Room", {
+          roomid: json.data.id,
+          endpoint: endpoint,
+          cardIds: localDeckCardIds,
+        });
+      } else {
+        // TODO ルームに入ったら切断されるようにする
+        console.log(
+          `Unexpected Event. Status: ${json.status}; Event: ${json.event}; Data: ${json.data}`
+        );
       }
     };
+
     // ローカルデッキ取得
     (async () => {
       const connectionManager = getConnectionManager();
@@ -69,17 +79,7 @@ export default function CreateRoomScreen({
     };
   }, []);
 
-  const enterRoom = () => {
-    if (websocket.current != null && selectedRoomId != null) {
-      setIsVisibleRoomEnterConfirmDialog(false);
-      navigation.navigate("Room", {
-        roomid: selectedRoomId,
-        endpoint: endpoint,
-        cardIds: localDeckCardIds,
-      });
-    }
-  };
-
+  // TODO ボイラープレートを避ける
   const onPickerValueChanged = async (itemValue: React.ReactText) => {
     const selectedDeckId = parseInt(itemValue.toString());
     // 2回呼ばれる対策
@@ -110,6 +110,7 @@ export default function CreateRoomScreen({
     }
   };
 
+  // TODO ボイラープレートを避ける
   const deckPicker = (
     selectedId: number | string | undefined,
     onPickerValueChanged: (
@@ -124,7 +125,6 @@ export default function CreateRoomScreen({
         style={styles.picker}
         onValueChange={onPickerValueChanged}
       >
-        {/* <Picker.Item key="none" label="選択なし" value="none" /> */}
         {pickerItems.map((pickerItem) => {
           return (
             <Picker.Item
@@ -138,6 +138,7 @@ export default function CreateRoomScreen({
     );
   };
 
+  // TODO ボイラープレートを避ける
   const roomEnterConfirmDialog = () => {
     return (
       <Dialog.Container visible={isVisibleRoomEnterConfirmDialog}>
@@ -147,17 +148,16 @@ export default function CreateRoomScreen({
           label="キャンセル"
           onPress={() => setIsVisibleRoomEnterConfirmDialog(false)}
         />
-        <Dialog.Button label="入室" onPress={enterRoom} />
+        <Dialog.Button
+          label="入室"
+          onPress={() => {
+            if (websocket.current != null) {
+              websocket.current.send(`/create ${roomName}`);
+            }
+          }}
+        />
       </Dialog.Container>
     );
-  };
-
-  const onSubmit = async (values: { name: string }) => {
-    // データ送信
-    console.log(values);
-    if (websocket.current != null) {
-      websocket.current.send(`/create ${values.name}`);
-    }
   };
 
   const schema = Yup.object().shape({
@@ -174,7 +174,10 @@ export default function CreateRoomScreen({
         }}
         validateOnMount
         validationSchema={schema}
-        onSubmit={(values) => onSubmit(values)}
+        onSubmit={(values) => {
+          setRoomName(values.name);
+          setIsVisibleRoomEnterConfirmDialog(true);
+        }}
       >
         {({
           handleSubmit,

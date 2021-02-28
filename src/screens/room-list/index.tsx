@@ -4,7 +4,6 @@ import {
   SafeAreaView,
   FlatList,
   ActivityIndicator,
-  RefreshControl,
 } from "react-native";
 import { SearchBar, ListItem, Icon } from "react-native-elements";
 import { StackNavigationProp } from "@react-navigation/stack";
@@ -21,9 +20,7 @@ import {
   getRepository,
   getConnectionManager,
 } from "typeorm/browser";
-
-type Room = { name: string; id: string; num: number };
-type RoomList = Room[];
+import { Room, isGetRoomListMessage, WsMessage } from "../../utils/ws-message";
 
 export default function RoomListScreen({
   navigation,
@@ -31,12 +28,11 @@ export default function RoomListScreen({
   navigation: RoomListScreenNavigationProp;
 }): ReactElement {
   const [isLoading, setIsLoading] = useState(true);
-  const [displayData, setDisplayData] = useState<RoomList>([]);
+  const [displayData, setDisplayData] = useState<Room[]>([]);
   const [searchInput, setSearchInput] = useState("");
   const isFocused = useIsFocused();
   const [endpoint, setEndPoint] = useState<string>(DEFAULT_ENDPOINT);
-  const [roomListData, setRoomListData] = useState<RoomList>([]);
-  const [updated, setUpdated] = useState(false);
+  const [roomListData, setRoomListData] = useState<Room[]>([]);
   const websocket = useRef<WebSocket | null>(null);
   const [
     isVisibleRoomEnterConfirmDialog,
@@ -50,24 +46,10 @@ export default function RoomListScreen({
   const [localDeckCardIds, setLocalDeckCardIds] = useState<number[]>([]);
 
   useEffect(() => {
-    if (updated) {
-      // WebSocket作成
-      websocket.current = new WebSocket(`ws://${endpoint}/ws`);
-      websocket.current.onopen = () => {
-        console.log("opened");
-        if (websocket.current != null) {
-          websocket.current.send("/list");
-        }
-      };
-      websocket.current.onmessage = (event) => {
-        console.log(event.data);
-        if (event.data.startsWith("{")) {
-          const json = JSON.parse(event.data);
-          setRoomListData(json.data.rooms);
-        }
-      };
-      // ローカルデッキ取得
+    if (isFocused) {
       (async () => {
+        setIsLoading(true);
+        // ローカルに保存されているデッキの取得
         const connectionManager = getConnectionManager();
         if (connectionManager.connections.length == 0) {
           await createConnection({
@@ -81,38 +63,44 @@ export default function RoomListScreen({
         const deckRepository = getRepository(Deck);
         const loadedDecks = await deckRepository.find();
         setLocalDecks(loadedDecks);
-      })();
-      return () => {
-        // WebSocket切断
-        if (websocket.current != null) {
-          websocket.current.close();
+
+        // websocketエンドポイントの取得
+        try {
+          const endpointFromPreferences = await AsyncStorage.getItem(
+            "@endpoint"
+          );
+          if (endpointFromPreferences != null) {
+            setEndPoint(endpointFromPreferences);
+          }
+        } catch (error) {
+          console.log(error);
         }
-      };
-    }
-  }, [updated]);
 
-  /** WebSocketのエンドポイント取得 */
-  const getEndPoint = async () => {
-    let endpointFromPreferences = DEFAULT_ENDPOINT;
-    try {
-      endpointFromPreferences =
-        (await AsyncStorage.getItem("@endpoint")) || DEFAULT_ENDPOINT;
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setEndPoint(endpointFromPreferences);
-      setUpdated(true);
-    }
-  };
-
-  useEffect(() => {
-    if (isFocused) {
-      setIsLoading(true);
-      getEndPoint();
+        // websocketの初期化
+        websocket.current = new WebSocket(`ws://${endpoint}/ws`);
+        websocket.current.onopen = () => {
+          console.log("opened");
+          if (websocket.current != null) {
+            websocket.current.send("/list");
+          }
+        };
+        websocket.current.onmessage = (event) => {
+          console.log(event.data);
+          const json: WsMessage = JSON.parse(event.data);
+          if (isGetRoomListMessage(json)) {
+            setRoomListData(json.data);
+          } else {
+            console.log(
+              `Unexpected Event. Status: ${json.status}; Event: ${json.event}; Data: ${json.data}`
+            );
+          }
+        };
+      })();
     }
     return () => {
-      setUpdated(false);
-      console.log("set updated false");
+      if (websocket.current != null) {
+        websocket.current.close();
+      }
     };
   }, [isFocused]);
 
@@ -167,7 +155,7 @@ export default function RoomListScreen({
     },
   ];
 
-  const onRefresh = () => {
+  const requestRoomList = () => {
     if (
       websocket.current != null &&
       websocket.current.readyState == WebSocket.OPEN
@@ -224,6 +212,7 @@ export default function RoomListScreen({
       }
     }
   };
+  // TODO サーバー側のデッキを選べるようにする
   const deckPicker = (
     selectedId: number | string | undefined,
     onPickerValueChanged: (
@@ -238,7 +227,6 @@ export default function RoomListScreen({
         style={styles.picker}
         onValueChange={onPickerValueChanged}
       >
-        {/* <Picker.Item key="none" label="選択なし" value="none" /> */}
         {pickerItems.map((pickerItem) => {
           return (
             <Picker.Item
@@ -281,9 +269,8 @@ export default function RoomListScreen({
           keyExtractor={keyExtractor}
           data={displayData}
           renderItem={renderItem}
-          refreshControl={
-            <RefreshControl refreshing={isLoading} onRefresh={onRefresh} />
-          }
+          onRefresh={requestRoomList}
+          refreshing={isLoading}
         />
       )}
       <FloatingAction

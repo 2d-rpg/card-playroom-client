@@ -16,6 +16,7 @@ import { useIsFocused } from "@react-navigation/native";
 import { Dimensions } from "react-native";
 import { FloatingAction } from "react-native-floating-action";
 import { Icon, Text } from "react-native-elements";
+import { DEFAULT_ENDPOINT } from "../home";
 
 interface ServerCard {
   id: number;
@@ -99,7 +100,7 @@ export default function EditDeckScreen(): ReactElement {
   const cardsQueryResult = useQuery<ServerCards>(GET_SERVER_CARDS);
 
   const [reloadCount, setReloadCount] = useState(0);
-  const [endpoint, setEndPoint] = useState<string>("127.0.0.1");
+  const [endpoint, setEndPoint] = useState<string>(DEFAULT_ENDPOINT);
   const isFocused = useIsFocused();
 
   const updateLocalDeck = async (
@@ -138,10 +139,15 @@ export default function EditDeckScreen(): ReactElement {
         const deckRepository = getRepository(Deck);
         const loadedDecks = await deckRepository.find();
         setLocalDecks(loadedDecks);
-
-        const endpointFromPreferences = await AsyncStorage.getItem("@endpoint");
-        if (endpointFromPreferences != null) {
-          setEndPoint(endpointFromPreferences);
+        try {
+          const endpointFromPreferences = await AsyncStorage.getItem(
+            "@endpoint"
+          );
+          if (endpointFromPreferences != null) {
+            setEndPoint(endpointFromPreferences);
+          }
+        } catch (error) {
+          console.log(error);
         }
       })();
       if (
