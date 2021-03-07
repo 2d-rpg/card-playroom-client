@@ -28,6 +28,12 @@ const windowHeight = Dimensions.get("window").height;
 const cardHeight = windowHeight / 3;
 const cardWidth = (cardHeight * 2) / 3;
 
+interface CardProperty {
+  id: number;
+  isOwn: boolean;
+  position: Animated.ValueXY;
+}
+
 export default function RoomScreen({
   route,
 }: {
@@ -41,6 +47,8 @@ export default function RoomScreen({
   const [firstOpponentCard, setFirstOpponentCard] = useState<ServerCard | null>(
     null
   );
+  const [ownCards, setOwnCards] = useState<CardProperty[]>([]);
+  const [opponentCards, setOpponentCards] = useState<CardProperty[]>([]);
   const [ownPan, setOwnPan] = useState(new Animated.ValueXY());
   const [opponentPan, setOpponentPan] = useState(new Animated.ValueXY());
 

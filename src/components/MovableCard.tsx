@@ -9,24 +9,24 @@ export const MovableCard = (props: {
   height: number;
   endpoint: string;
   onCardRelease: () => void;
+  position: Animated.ValueXY;
 }): ReactElement => {
-  const [position, setPosition] = useState(new Animated.ValueXY());
   const panResponder = useRef(
     PanResponder.create({
       onMoveShouldSetPanResponder: () => true,
       onPanResponderGrant: () => {
         // pan.x: Animated.value には_valueプロパティが見つからないため
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const panX = position.x as any;
+        const panX = props.position.x as any;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const panY = position.y as any;
-        position.setOffset({
+        const panY = props.position.y as any;
+        props.position.setOffset({
           x: panX._value,
           y: panY._value,
         });
       },
       onPanResponderMove: Animated.event(
-        [null, { dx: position.x, dy: position.y }],
+        [null, { dx: props.position.x, dy: props.position.y }],
         {
           useNativeDriver: false,
         }
@@ -51,7 +51,10 @@ export const MovableCard = (props: {
   return (
     <Animated.View
       style={{
-        transform: [{ translateX: position.x }, { translateY: position.y }],
+        transform: [
+          { translateX: props.position.x },
+          { translateY: props.position.y },
+        ],
       }}
       {...panResponder.panHandlers}
     >
