@@ -1,4 +1,4 @@
-import React, { ReactElement, useRef } from "react";
+import React, { ReactElement, useRef, useState } from "react";
 import { Animated, PanResponder } from "react-native";
 import { Card } from "./Card";
 import { ServerCard } from "../utils/server-card-interface";
@@ -9,24 +9,24 @@ export const MovableCard = (props: {
   height: number;
   endpoint: string;
   onCardRelease: () => void;
-  position: Animated.ValueXY;
 }): ReactElement => {
+  const [position, setPosition] = useState(new Animated.ValueXY());
   const panResponder = useRef(
     PanResponder.create({
       onMoveShouldSetPanResponder: () => true,
       onPanResponderGrant: () => {
         // pan.x: Animated.value には_valueプロパティが見つからないため
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const panX = props.position.x as any;
+        const panX = position.x as any;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const panY = props.position.y as any;
-        props.position.setOffset({
+        const panY = position.y as any;
+        position.setOffset({
           x: panX._value,
           y: panY._value,
         });
       },
       onPanResponderMove: Animated.event(
-        [null, { dx: props.position.x, dy: props.position.y }],
+        [null, { dx: position.x, dy: position.y }],
         {
           useNativeDriver: false,
         }
@@ -51,10 +51,7 @@ export const MovableCard = (props: {
   return (
     <Animated.View
       style={{
-        transform: [
-          { translateX: props.position.x },
-          { translateY: props.position.y },
-        ],
+        transform: [{ translateX: position.x }, { translateY: position.y }],
       }}
       {...panResponder.panHandlers}
     >
