@@ -1,6 +1,6 @@
 import React, { ReactElement, useState, useEffect } from "react";
 import { ActivityIndicator, StyleSheet, View, FlatList } from "react-native";
-import Card from "../../components/Card";
+import { Card } from "../../components/Card";
 import { Picker } from "@react-native-picker/picker";
 import GestureRecognizer from "react-native-swipe-gestures";
 import {

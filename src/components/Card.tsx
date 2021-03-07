@@ -1,13 +1,13 @@
 import React, { ReactElement } from "react";
 import { Image } from "react-native";
 
-export default function Card(props: {
+export const Card = (props: {
   facePath: string | undefined;
   backPath: string | undefined;
   width: number;
   height: number;
   endpoint: string;
-}): ReactElement {
+}): ReactElement => {
   // TODO ズームイン，ズームアウト時の拡大縮小に対応
   // TODO 背面画像の対応
   if (props.facePath == null) {
@@ -35,4 +35,4 @@ export default function Card(props: {
       />
     );
   }
-}
+};

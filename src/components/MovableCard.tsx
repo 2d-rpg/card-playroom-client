@@ -1,6 +1,6 @@
 import React, { ReactElement, useRef } from "react";
 import { Animated, PanResponder } from "react-native";
-import Card from "./Card";
+import { Card } from "./Card";
 
 interface ServerCard {
   id: number;
@@ -8,7 +8,7 @@ interface ServerCard {
   back: string;
 }
 
-export default function MovableCard(props: {
+export const MovableCard = (props: {
   serverCard: ServerCard;
   width: number;
   height: number;
@@ -17,7 +17,7 @@ export default function MovableCard(props: {
   position: Animated.ValueXY;
   kind: string;
   setPosition: React.Dispatch<React.SetStateAction<Animated.ValueXY>>;
-}): ReactElement {
+}): ReactElement => {
   const panResponder = useRef(
     PanResponder.create({
       onMoveShouldSetPanResponder: () => true,
@@ -84,4 +84,4 @@ export default function MovableCard(props: {
       {renderCard()}
     </Animated.View>
   );
-}
+};
