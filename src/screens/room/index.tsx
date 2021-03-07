@@ -150,10 +150,24 @@ export default function RoomScreen({
         width={cardWidth}
         height={cardHeight}
         endpoint={endpoint}
-        websocket={websocket.current}
+        onCardRelease={() => {
+          opponentPan.flattenOffset();
+          // ポジションをjsonとしてサーバに送信
+          if (
+            websocket.current != null &&
+            websocket.current.readyState == WebSocket.OPEN
+          ) {
+            websocket.current.send(
+              JSON.stringify({
+                index: 0,
+                x: opponentPan.x,
+                y: opponentPan.y,
+              })
+            );
+          }
+        }}
         position={ownPan}
         setPosition={setOwnPan}
-        kind="own"
       />
     );
 
@@ -168,10 +182,24 @@ export default function RoomScreen({
         width={cardWidth}
         height={cardHeight}
         endpoint={endpoint}
-        websocket={websocket.current}
+        onCardRelease={() => {
+          opponentPan.flattenOffset();
+          // ポジションをjsonとしてサーバに送信
+          if (
+            websocket.current != null &&
+            websocket.current.readyState == WebSocket.OPEN
+          ) {
+            websocket.current.send(
+              JSON.stringify({
+                index: 0,
+                x: opponentPan.x,
+                y: opponentPan.y,
+              })
+            );
+          }
+        }}
         position={opponentPan}
         setPosition={setOpponentPan}
-        kind="opponent"
       />
     );
 

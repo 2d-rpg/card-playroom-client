@@ -13,9 +13,8 @@ export const MovableCard = (props: {
   width: number;
   height: number;
   endpoint: string;
-  websocket: WebSocket | null;
+  onCardRelease: () => void;
   position: Animated.ValueXY;
-  kind: string;
   setPosition: React.Dispatch<React.SetStateAction<Animated.ValueXY>>;
 }): ReactElement => {
   const panResponder = useRef(
@@ -38,23 +37,7 @@ export const MovableCard = (props: {
           useNativeDriver: false,
         }
       ),
-      onPanResponderRelease: () => {
-        props.position.flattenOffset();
-        // ポジションをjsonとしてサーバに送信
-        if (
-          props.websocket != null &&
-          props.websocket.readyState == WebSocket.OPEN
-        ) {
-          props.websocket.send(
-            JSON.stringify({
-              kind: props.kind,
-              index: 0,
-              x: props.position.x,
-              y: props.position.y,
-            })
-          );
-        }
-      },
+      onPanResponderRelease: props.onCardRelease,
     })
   ).current;
 
