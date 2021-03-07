@@ -12,8 +12,6 @@ import { FloatingAction } from "react-native-floating-action";
 import { useIsFocused } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { DEFAULT_ENDPOINT } from "../home/index";
-import Dialog from "react-native-dialog";
-import { Picker } from "@react-native-picker/picker";
 import { Deck } from "../../entities/Deck";
 import {
   createConnection,
@@ -21,6 +19,7 @@ import {
   getConnectionManager,
 } from "typeorm/browser";
 import { Room, isGetRoomListMessage, WsMessage } from "../../utils/ws-message";
+import { EnterRoomConfirmDialog } from "../../components/EnterRoomConfirmDialog";
 
 export default function RoomListScreen({
   navigation,
@@ -212,46 +211,6 @@ export default function RoomListScreen({
       }
     }
   };
-  // TODO サーバー側のデッキを選べるようにする
-  const deckPicker = (
-    selectedId: number | string | undefined,
-    onPickerValueChanged: (
-      itemValue: React.ReactText,
-      itemIndex: number
-    ) => void,
-    pickerItems: Deck[]
-  ) => {
-    return (
-      <Picker
-        selectedValue={selectedId}
-        style={styles.picker}
-        onValueChange={onPickerValueChanged}
-      >
-        {pickerItems.map((pickerItem) => {
-          return (
-            <Picker.Item
-              key={pickerItem.id}
-              label={pickerItem.name}
-              value={pickerItem.id}
-            />
-          );
-        })}
-      </Picker>
-    );
-  };
-  const roomEnterConfirmDialog = () => {
-    return (
-      <Dialog.Container visible={isVisibleRoomEnterConfirmDialog}>
-        <Dialog.Title>デッキ選択</Dialog.Title>
-        {deckPicker(localDeckId, onPickerValueChanged, localDecks)}
-        <Dialog.Button
-          label="キャンセル"
-          onPress={() => setIsVisibleRoomEnterConfirmDialog(false)}
-        />
-        <Dialog.Button label="入室" onPress={enterRoom} />
-      </Dialog.Container>
-    );
-  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -279,7 +238,14 @@ export default function RoomListScreen({
         color={"#03A9F4"}
         onPressItem={onPressFloadtingActionIcons}
       />
-      {roomEnterConfirmDialog()}
+      <EnterRoomConfirmDialog
+        visible={isVisibleRoomEnterConfirmDialog}
+        selectedDeckId={localDeckId}
+        onPickerValueChanged={onPickerValueChanged}
+        decks={localDecks}
+        onPressCancelButton={() => setIsVisibleRoomEnterConfirmDialog(false)}
+        onPressEnterButton={enterRoom}
+      />
     </SafeAreaView>
   );
 }

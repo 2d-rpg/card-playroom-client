@@ -6,8 +6,6 @@ import { RouteProp } from "@react-navigation/native";
 import { RootStackParamList } from "../../../App";
 import { Formik } from "formik";
 import * as Yup from "yup";
-import Dialog from "react-native-dialog";
-import { Picker } from "@react-native-picker/picker";
 import { Deck } from "../../entities/Deck";
 import {
   createConnection,
@@ -16,7 +14,7 @@ import {
 } from "typeorm/browser";
 import { isCreateRoomMessage, WsMessage } from "../../utils/ws-message";
 import { useValueRef } from "../../utils/use-value-ref";
-import { DeckPicker } from "../../components/DeckPicker";
+import { EnterRoomConfirmDialog } from "../../components/EnterRoomConfirmDialog";
 
 export default function CreateRoomScreen({
   route,
@@ -83,7 +81,7 @@ export default function CreateRoomScreen({
   }, []);
 
   // TODO ボイラープレートを避ける
-  const onPickerValueChanged = async (itemValue: React.ReactText) => {
+  const onPickerValueChanged = (itemValue: React.ReactText) => {
     const selectedDeckId = parseInt(itemValue.toString());
     // 2回呼ばれる対策
     if (selectedDeckId === localDeckId) {
@@ -111,33 +109,6 @@ export default function CreateRoomScreen({
         setLocalDeckCardIds(selectedLocalDeck.cardIds);
       }
     }
-  };
-
-  // TODO ボイラープレートを避ける
-  const roomEnterConfirmDialog = () => {
-    return (
-      <Dialog.Container visible={isVisibleRoomEnterConfirmDialog}>
-        <Dialog.Title>デッキ選択</Dialog.Title>
-        {DeckPicker(
-          localDeckId,
-          onPickerValueChanged,
-          localDecks,
-          styles.picker
-        )}
-        <Dialog.Button
-          label="キャンセル"
-          onPress={() => setIsVisibleRoomEnterConfirmDialog(false)}
-        />
-        <Dialog.Button
-          label="入室"
-          onPress={() => {
-            if (websocket.current != null) {
-              websocket.current.send(`/create ${roomName}`);
-            }
-          }}
-        />
-      </Dialog.Container>
-    );
   };
 
   const schema = Yup.object().shape({
@@ -189,7 +160,18 @@ export default function CreateRoomScreen({
           </>
         )}
       </Formik>
-      {roomEnterConfirmDialog()}
+      <EnterRoomConfirmDialog
+        visible={isVisibleRoomEnterConfirmDialog}
+        selectedDeckId={localDeckId}
+        onPickerValueChanged={onPickerValueChanged}
+        decks={localDecks}
+        onPressCancelButton={() => setIsVisibleRoomEnterConfirmDialog(false)}
+        onPressEnterButton={() => {
+          if (websocket.current != null) {
+            websocket.current.send(`/create ${roomName}`);
+          }
+        }}
+      />
     </View>
   );
 }
@@ -208,5 +190,4 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   button: { margin: 10 },
-  picker: { width: 200 },
 });

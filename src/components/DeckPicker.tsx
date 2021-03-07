@@ -1,22 +1,24 @@
 import React, { ReactElement } from "react";
 import { Picker } from "@react-native-picker/picker";
-import { TextStyle, StyleProp } from "react-native";
 import { Deck } from "../entities/Deck";
 
 // ローカル/サーバー のデッキ選択のためのセレクトボックス
-export const DeckPicker = (
-  selectedId: number | string | undefined,
-  onPickerValueChanged: (itemValue: React.ReactText, itemIndex: number) => void,
-  pickerItems: Deck[],
-  style?: StyleProp<TextStyle>
-): ReactElement => {
+// TODO サーバー側のデッキを選べるようにする
+export const DeckPicker = (props: {
+  selectedId: number | string | undefined;
+  onValueChanged: (itemValue: React.ReactText, itemIndex: number) => void;
+  items: Deck[];
+  width: number;
+}): ReactElement => {
   return (
     <Picker
-      selectedValue={selectedId}
-      style={style}
-      onValueChange={onPickerValueChanged}
+      selectedValue={props.selectedId}
+      style={{
+        width: props.width,
+      }}
+      onValueChange={props.onValueChanged}
     >
-      {pickerItems.map((pickerItem) => {
+      {props.items.map((pickerItem) => {
         return (
           <Picker.Item
             key={pickerItem.id}
