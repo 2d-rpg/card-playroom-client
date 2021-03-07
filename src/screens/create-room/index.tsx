@@ -117,6 +117,7 @@ export default function CreateRoomScreen({
       .max(20, "20文字以内で入力してください")
       .required("ルーム名を入力してください"),
   });
+  // TODO Formik は遅いのでReact Hook Formを使う
   return (
     <View style={styles.container}>
       <Formik
