@@ -12,16 +12,7 @@ import { RouteProp } from "@react-navigation/native";
 import { RootStackParamList } from "../../../App";
 import { gql, useQuery } from "@apollo/client";
 import { MovableCard } from "../../components/MovableCard";
-
-interface ServerCard {
-  id: number;
-  face: string;
-  back: string;
-}
-
-interface ServerCards {
-  cards: ServerCard[];
-}
+import { ServerCard, ServerCards } from "../../utils/server-card-interface";
 
 const GET_SERVER_CARDS = gql`
   query {
@@ -151,7 +142,7 @@ export default function RoomScreen({
         height={cardHeight}
         endpoint={endpoint}
         onCardRelease={() => {
-          opponentPan.flattenOffset();
+          ownPan.flattenOffset();
           // ポジションをjsonとしてサーバに送信
           if (
             websocket.current != null &&
@@ -160,14 +151,13 @@ export default function RoomScreen({
             websocket.current.send(
               JSON.stringify({
                 index: 0,
-                x: opponentPan.x,
-                y: opponentPan.y,
+                x: ownPan.x,
+                y: ownPan.y,
               })
             );
           }
         }}
         position={ownPan}
-        setPosition={setOwnPan}
       />
     );
 
@@ -199,7 +189,6 @@ export default function RoomScreen({
           }
         }}
         position={opponentPan}
-        setPosition={setOpponentPan}
       />
     );
 

@@ -1,12 +1,7 @@
 import React, { ReactElement, useRef } from "react";
 import { Animated, PanResponder } from "react-native";
 import { Card } from "./Card";
-
-interface ServerCard {
-  id: number;
-  face: string;
-  back: string;
-}
+import { ServerCard } from "../utils/server-card-interface";
 
 export const MovableCard = (props: {
   serverCard: ServerCard;
@@ -15,7 +10,6 @@ export const MovableCard = (props: {
   endpoint: string;
   onCardRelease: () => void;
   position: Animated.ValueXY;
-  setPosition: React.Dispatch<React.SetStateAction<Animated.ValueXY>>;
 }): ReactElement => {
   const panResponder = useRef(
     PanResponder.create({

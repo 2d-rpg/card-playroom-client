@@ -17,16 +17,7 @@ import { FloatingAction } from "react-native-floating-action";
 import { Icon, Text } from "react-native-elements";
 import { DEFAULT_ENDPOINT } from "../home";
 import { DeckPicker } from "../../components/DeckPicker";
-
-interface ServerCard {
-  id: number;
-  face: string;
-  back: string;
-}
-
-interface ServerCards {
-  cards: ServerCard[];
-}
+import { ServerCard, ServerCards } from "../../utils/server-card-interface";
 
 const GET_SERVER_CARDS = gql`
   query {
