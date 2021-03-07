@@ -15,6 +15,7 @@ import {
   getConnectionManager,
 } from "typeorm/browser";
 import { isCreateRoomMessage, WsMessage } from "../../utils/ws-message";
+import { useValueRef } from "../../utils/use-value-ref";
 
 export default function CreateRoomScreen({
   route,
@@ -35,6 +36,7 @@ export default function CreateRoomScreen({
   );
   const [localDecks, setLocalDecks] = useState<Deck[]>([]);
   const [localDeckCardIds, setLocalDeckCardIds] = useState<number[]>([]);
+  const refLocalDeckCardIds = useValueRef(localDeckCardIds);
 
   useEffect(() => {
     // websocketの初期化
@@ -46,7 +48,7 @@ export default function CreateRoomScreen({
         navigation.navigate("Room", {
           roomid: json.data.id,
           endpoint: endpoint,
-          cardIds: localDeckCardIds,
+          cardIds: refLocalDeckCardIds.current,
         });
       } else {
         // TODO ルームに入ったら切断されるようにする

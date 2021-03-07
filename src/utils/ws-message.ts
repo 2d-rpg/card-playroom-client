@@ -1,3 +1,5 @@
+// Websocket message structure definition
+
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Status = "Ok" | "Error";
