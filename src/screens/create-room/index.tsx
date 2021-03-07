@@ -16,6 +16,7 @@ import {
 } from "typeorm/browser";
 import { isCreateRoomMessage, WsMessage } from "../../utils/ws-message";
 import { useValueRef } from "../../utils/use-value-ref";
+import { DeckPicker } from "../../components/DeckPicker";
 
 export default function CreateRoomScreen({
   route,
@@ -113,39 +114,16 @@ export default function CreateRoomScreen({
   };
 
   // TODO ボイラープレートを避ける
-  const deckPicker = (
-    selectedId: number | string | undefined,
-    onPickerValueChanged: (
-      itemValue: React.ReactText,
-      itemIndex: number
-    ) => void,
-    pickerItems: Deck[]
-  ) => {
-    return (
-      <Picker
-        selectedValue={selectedId}
-        style={styles.picker}
-        onValueChange={onPickerValueChanged}
-      >
-        {pickerItems.map((pickerItem) => {
-          return (
-            <Picker.Item
-              key={pickerItem.id}
-              label={pickerItem.name}
-              value={pickerItem.id}
-            />
-          );
-        })}
-      </Picker>
-    );
-  };
-
-  // TODO ボイラープレートを避ける
   const roomEnterConfirmDialog = () => {
     return (
       <Dialog.Container visible={isVisibleRoomEnterConfirmDialog}>
         <Dialog.Title>デッキ選択</Dialog.Title>
-        {deckPicker(localDeckId, onPickerValueChanged, localDecks)}
+        {DeckPicker(
+          localDeckId,
+          onPickerValueChanged,
+          localDecks,
+          styles.picker
+        )}
         <Dialog.Button
           label="キャンセル"
           onPress={() => setIsVisibleRoomEnterConfirmDialog(false)}

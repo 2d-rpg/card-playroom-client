@@ -17,6 +17,7 @@ import { Dimensions } from "react-native";
 import { FloatingAction } from "react-native-floating-action";
 import { Icon, Text } from "react-native-elements";
 import { DEFAULT_ENDPOINT } from "../home";
+import { DeckPicker } from "../../components/DeckPicker";
 
 interface ServerCard {
   id: number;
@@ -363,35 +364,6 @@ export default function EditDeckScreen(): ReactElement {
       }
     };
 
-    // ローカル/サーバー のデッキ選択のためのセレクトボックス
-    const deckPicker = (
-      selectedId: number | string | undefined,
-      onPickerValueChanged: (
-        itemValue: React.ReactText,
-        itemIndex: number
-      ) => void,
-      pickerItems: Deck[]
-    ) => {
-      return (
-        <Picker
-          selectedValue={selectedId}
-          style={styles.picker}
-          onValueChange={onPickerValueChanged}
-        >
-          <Picker.Item key="none" label="選択なし" value="none" />
-          {pickerItems.map((pickerItem) => {
-            return (
-              <Picker.Item
-                key={pickerItem.id}
-                label={pickerItem.name}
-                value={pickerItem.id}
-              />
-            );
-          })}
-        </Picker>
-      );
-    };
-
     // ローカル/サーバー のカードをリスト表示
     const deckFlatList = (
       selectedId: number | string | undefined,
@@ -605,10 +577,20 @@ export default function EditDeckScreen(): ReactElement {
     return (
       <View style={styles.container}>
         <Text>サーバーのデッキ</Text>
-        {deckPicker(serverDeckId, onServerDeckPickerValueChanged, serverDecks)}
+        {DeckPicker(
+          serverDeckId,
+          onServerDeckPickerValueChanged,
+          serverDecks,
+          styles.picker
+        )}
         {deckFlatList(serverDeckId, serverDeckCardIds, renderServerDeckItem)}
         <Text>ローカルのデッキ</Text>
-        {deckPicker(localDeckId, onLocalDeckPickerValueChanged, localDecks)}
+        {DeckPicker(
+          localDeckId,
+          onLocalDeckPickerValueChanged,
+          localDecks,
+          styles.picker
+        )}
         {deckFlatList(localDeckId, localDeckCardIds, renderLocalDeckItem)}
         <FloatingAction
           actions={floadtingActions}
