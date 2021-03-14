@@ -13,6 +13,7 @@ import { RootStackParamList } from "../../../App";
 import { gql, useQuery } from "@apollo/client";
 import { MovableCard } from "../../components/MovableCard";
 import { ServerCard, ServerCards } from "../../utils/server-card-interface";
+import { useValueRef } from "../../utils/use-value-ref";
 
 // TODO カードを必要な分だけ取る
 const GET_SERVER_CARDS = gql`
@@ -30,6 +31,7 @@ const cardHeight = windowHeight / 3;
 const cardWidth = (cardHeight * 2) / 3;
 
 interface CardInRoom extends ServerCard {
+  index: number;
   isOwn: boolean;
   position: Animated.ValueXY;
 }
@@ -47,7 +49,8 @@ export default function RoomScreen({
   const [firstOpponentCard, setFirstOpponentCard] = useState<ServerCard | null>(
     null
   );
-  const [ownCards, setOwnCards] = useState<CardInRoom[]>([]);
+  const [ownCards, setOwnCards] = useState<CardInRoom[] | null>(null);
+  const refOwnCards = useValueRef(ownCards);
   const [opponentCards, setOpponentCards] = useState<CardInRoom[]>([]);
   const [ownPan, setOwnPan] = useState(new Animated.ValueXY());
   const [opponentPan, setOpponentPan] = useState(new Animated.ValueXY());
@@ -58,22 +61,25 @@ export default function RoomScreen({
       if (cardsQueryResult.error == null) {
         const serverCards = cardsQueryResult.data?.cards;
         if (serverCards != null) {
-          const ownCardsInRoom = cardIds.map((id) => {
-            const serverCard = serverCards.find((card) => card.id === id);
+          const ownCardsInRoom = cardIds.map((cardId, index) => {
+            const serverCard = serverCards.find((card) => card.id === cardId);
             if (serverCard != null) {
               const cardInRoom: CardInRoom = {
-                id: id,
+                id: cardId,
                 face: serverCard.face,
                 back: serverCard.back,
+                index: index,
                 isOwn: true,
                 position: new Animated.ValueXY(),
               };
               return cardInRoom;
             } else {
+              // サーバーに指定されたIDのカードがない
               const unloadCard: CardInRoom = {
-                id: id,
+                id: cardId,
                 face: undefined,
                 back: undefined,
+                index: index,
                 isOwn: true,
                 position: new Animated.ValueXY(),
               };
@@ -111,6 +117,7 @@ export default function RoomScreen({
       websocket.current.onmessage = (event) => {
         if (websocket.current?.readyState === WebSocket.OPEN) {
           console.log("received event:" + event.data);
+          // TODO サーバーからのメッセージの形式を統一する
           if (event.data.startsWith('{"kind')) {
             // TODO サーバ側ですべてjson parsableになるよう実装
             const data = JSON.parse(event.data);
@@ -149,38 +156,40 @@ export default function RoomScreen({
     };
   }, []);
 
-  useEffect(() => {
-    firstOwnCardRef.current = firstOwnCard;
-  }, [firstOwnCard]);
-
-  const ownCard = (ownCard: ServerCard | null) =>
-    !ownCard ? (
-      <ActivityIndicator />
-    ) : (
-      <MovableCard
-        serverCard={ownCard}
-        width={cardWidth}
-        height={cardHeight}
-        endpoint={endpoint}
-        onCardRelease={() => {
-          ownPan.flattenOffset();
-          // ポジションをjsonとしてサーバに送信
-          if (
-            websocket.current != null &&
-            websocket.current.readyState == WebSocket.OPEN
-          ) {
-            websocket.current.send(
-              JSON.stringify({
-                index: 0,
-                x: ownPan.x,
-                y: ownPan.y,
-              })
-            );
-          }
-        }}
-        position={ownPan}
-      />
-    );
+  const movableCards = (cards: CardInRoom[] | null) => {
+    if (cards == null) {
+      return <ActivityIndicator />;
+    } else {
+      const movableCardComponents = cards.map((card) => (
+        <MovableCard
+          key={card.index}
+          face={card.face}
+          back={card.back}
+          width={cardWidth}
+          height={cardHeight}
+          endpoint={endpoint}
+          onCardRelease={() => {
+            card.position.flattenOffset();
+            // ポジションをjsonとしてサーバに送信
+            if (
+              websocket.current != null &&
+              websocket.current.readyState == WebSocket.OPEN
+            ) {
+              websocket.current.send(
+                JSON.stringify({
+                  index: 0,
+                  x: card.position.x,
+                  y: card.position.y,
+                })
+              );
+            }
+          }}
+          position={card.position}
+        />
+      ));
+      return movableCardComponents;
+    }
+  };
 
   // TODO 退出後再入室するとカードが表示されない
   // TODO 他の人が入ってきたときその人のカードが表示されない
@@ -189,7 +198,8 @@ export default function RoomScreen({
       <ActivityIndicator />
     ) : (
       <MovableCard
-        serverCard={opponentCard}
+        face={opponentCard.face}
+        back={opponentCard.back}
         width={cardWidth}
         height={cardHeight}
         endpoint={endpoint}
@@ -217,7 +227,7 @@ export default function RoomScreen({
   return (
     <View style={styles.container}>
       <Text style={styles.titleText}>Drag this box!</Text>
-      {ownCard(firstOwnCard)}
+      {movableCards(ownCards)}
       {renderOpponentCard(firstOpponentCard)}
     </View>
   );

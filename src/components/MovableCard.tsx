@@ -1,10 +1,10 @@
 import React, { ReactElement, useRef, useState } from "react";
 import { Animated, PanResponder } from "react-native";
 import { Card } from "./Card";
-import { ServerCard } from "../utils/server-card-interface";
 
 export const MovableCard = (props: {
-  serverCard: ServerCard;
+  face: string | undefined;
+  back: string | undefined;
   width: number;
   height: number;
   endpoint: string;
@@ -38,8 +38,8 @@ export const MovableCard = (props: {
   const renderCard = () => {
     const renderItem = (
       <Card
-        facePath={props.serverCard.face}
-        backPath={props.serverCard.back}
+        facePath={props.face}
+        backPath={props.back}
         height={props.height}
         width={props.width}
         endpoint={props.endpoint}
