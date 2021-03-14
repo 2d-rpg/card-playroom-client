@@ -1,7 +1,7 @@
 export interface ServerCard {
   id: number;
-  face: string;
-  back: string;
+  face: string | undefined;
+  back: string | undefined;
 }
 
 export interface ServerCards {

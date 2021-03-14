@@ -14,6 +14,7 @@ import { gql, useQuery } from "@apollo/client";
 import { MovableCard } from "../../components/MovableCard";
 import { ServerCard, ServerCards } from "../../utils/server-card-interface";
 
+// TODO カードを必要な分だけ取る
 const GET_SERVER_CARDS = gql`
   query {
     cards {
@@ -28,8 +29,7 @@ const windowHeight = Dimensions.get("window").height;
 const cardHeight = windowHeight / 3;
 const cardWidth = (cardHeight * 2) / 3;
 
-interface CardProperty {
-  id: number;
+interface CardInRoom extends ServerCard {
   isOwn: boolean;
   position: Animated.ValueXY;
 }
@@ -47,8 +47,8 @@ export default function RoomScreen({
   const [firstOpponentCard, setFirstOpponentCard] = useState<ServerCard | null>(
     null
   );
-  const [ownCards, setOwnCards] = useState<CardProperty[]>([]);
-  const [opponentCards, setOpponentCards] = useState<CardProperty[]>([]);
+  const [ownCards, setOwnCards] = useState<CardInRoom[]>([]);
+  const [opponentCards, setOpponentCards] = useState<CardInRoom[]>([]);
   const [ownPan, setOwnPan] = useState(new Animated.ValueXY());
   const [opponentPan, setOpponentPan] = useState(new Animated.ValueXY());
 
@@ -58,11 +58,29 @@ export default function RoomScreen({
       if (cardsQueryResult.error == null) {
         const serverCards = cardsQueryResult.data?.cards;
         if (serverCards != null) {
-          const firstOne = serverCards.find((card) => card.id === cardIds[0]);
-          if (firstOne != null) {
-            setFirstOwnCard(firstOne);
-            console.log(`set first card`);
-          }
+          const ownCardsInRoom = cardIds.map((id) => {
+            const serverCard = serverCards.find((card) => card.id === id);
+            if (serverCard != null) {
+              const cardInRoom: CardInRoom = {
+                id: id,
+                face: serverCard.face,
+                back: serverCard.back,
+                isOwn: true,
+                position: new Animated.ValueXY(),
+              };
+              return cardInRoom;
+            } else {
+              const unloadCard: CardInRoom = {
+                id: id,
+                face: undefined,
+                back: undefined,
+                isOwn: true,
+                position: new Animated.ValueXY(),
+              };
+              return unloadCard;
+            }
+          });
+          setOwnCards(ownCardsInRoom);
         }
       }
     }
@@ -79,11 +97,6 @@ export default function RoomScreen({
       websocket.current.send(JSON.stringify(firstOwnCard));
     }
   }, [firstOwnCard, websocket.current]);
-
-  useEffect(() => {
-    console.log("Opponent card changed!");
-    console.log(firstOpponentCard);
-  }, [firstOpponentCard]);
 
   // WebSocket
   useEffect(() => {
