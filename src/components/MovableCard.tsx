@@ -1,6 +1,10 @@
 import React, { ReactElement, useRef, useState } from "react";
-import { Animated, PanResponder } from "react-native";
+import { Animated, PanResponder, View } from "react-native";
 import { Card } from "./Card";
+import {
+  TapGestureHandler,
+  RotationGestureHandler,
+} from "react-native-gesture-handler";
 
 export const MovableCard = (props: {
   face: string | undefined;
@@ -35,19 +39,6 @@ export const MovableCard = (props: {
     })
   ).current;
 
-  const renderCard = () => {
-    const renderItem = (
-      <Card
-        facePath={props.face}
-        backPath={props.back}
-        height={props.height}
-        width={props.width}
-        endpoint={props.endpoint}
-      />
-    );
-    return renderItem;
-  };
-
   return (
     <Animated.View
       style={{
@@ -58,7 +49,19 @@ export const MovableCard = (props: {
       }}
       {...panResponder.panHandlers}
     >
-      {renderCard()}
+      <TapGestureHandler onHandlerStateChange={() => console.log(props.face)}>
+        {/* TODO Viewがないとcrashする */}
+        {/* https://github.com/software-mansion/react-native-gesture-handler/issues/711 */}
+        <View>
+          <Card
+            facePath={props.face}
+            backPath={props.back}
+            height={props.height}
+            width={props.width}
+            endpoint={props.endpoint}
+          />
+        </View>
+      </TapGestureHandler>
     </Animated.View>
   );
 };
