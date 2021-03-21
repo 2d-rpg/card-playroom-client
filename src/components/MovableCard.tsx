@@ -3,8 +3,12 @@ import { Animated, PanResponder, View } from "react-native";
 import { Card } from "./Card";
 import {
   TapGestureHandler,
-  RotationGestureHandler,
+  PanGestureHandler,
+  State,
 } from "react-native-gesture-handler";
+import { TapGestureHandlerStateChangeEvent } from "react-native-gesture-handler";
+import { PanGestureHandlerGestureEvent } from "react-native-gesture-handler";
+import { event } from "react-native-reanimated";
 
 export const MovableCard = (props: {
   face: string | undefined;
@@ -15,53 +19,63 @@ export const MovableCard = (props: {
   onCardRelease: () => void;
   position: Animated.ValueXY;
 }): ReactElement => {
-  const panResponder = useRef(
-    PanResponder.create({
-      onMoveShouldSetPanResponder: () => true,
-      onPanResponderGrant: () => {
-        // pan.x: Animated.value には_valueプロパティが見つからないため
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const panX = props.position.x as any;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const panY = props.position.y as any;
-        props.position.setOffset({
-          x: panX._value,
-          y: panY._value,
-        });
+  const doubleTapRef = React.createRef<TapGestureHandler>();
+  const onSingleTap = (event: TapGestureHandlerStateChangeEvent) => {
+    console.log(`1: ${event.nativeEvent.state}`);
+    if (event.nativeEvent.state === State.ACTIVE) {
+      console.log("single tap");
+    }
+  };
+  const onDoubleTap = (event: TapGestureHandlerStateChangeEvent) => {
+    console.log(`2: ${event.nativeEvent.state}`);
+    if (event.nativeEvent.state === State.ACTIVE) {
+      console.log("double tap");
+    }
+  };
+  const onPanGestureEvent = Animated.event(
+    [
+      {
+        nativeEvent: {
+          x: props.position.x,
+          y: props.position.y,
+        },
       },
-      onPanResponderMove: Animated.event(
-        [null, { dx: props.position.x, dy: props.position.y }],
-        {
-          useNativeDriver: false,
-        }
-      ),
-      onPanResponderRelease: props.onCardRelease,
-    })
-  ).current;
-
+    ],
+    { useNativeDriver: false }
+  );
   return (
-    <Animated.View
-      style={{
-        transform: [
-          { translateX: props.position.x },
-          { translateY: props.position.y },
-        ],
-      }}
-      {...panResponder.panHandlers}
-    >
-      <TapGestureHandler onHandlerStateChange={() => console.log(props.face)}>
-        {/* TODO Viewがないとcrashする */}
-        {/* https://github.com/software-mansion/react-native-gesture-handler/issues/711 */}
-        <View>
-          <Card
-            facePath={props.face}
-            backPath={props.back}
-            height={props.height}
-            width={props.width}
-            endpoint={props.endpoint}
-          />
-        </View>
-      </TapGestureHandler>
-    </Animated.View>
+    <PanGestureHandler onGestureEvent={onPanGestureEvent}>
+      <Animated.View
+        style={{
+          transform: [
+            { translateX: props.position.x },
+            { translateY: props.position.y },
+          ],
+        }}
+      >
+        <TapGestureHandler
+          onHandlerStateChange={onSingleTap}
+          waitFor={doubleTapRef}
+        >
+          <TapGestureHandler
+            ref={doubleTapRef}
+            onHandlerStateChange={onDoubleTap}
+            numberOfTaps={2}
+          >
+            {/* TODO Viewがないとcrashする */}
+            {/* https://github.com/software-mansion/react-native-gesture-handler/issues/711 */}
+            <View>
+              <Card
+                facePath={props.face}
+                backPath={props.back}
+                height={props.height}
+                width={props.width}
+                endpoint={props.endpoint}
+              />
+            </View>
+          </TapGestureHandler>
+        </TapGestureHandler>
+      </Animated.View>
+    </PanGestureHandler>
   );
 };
