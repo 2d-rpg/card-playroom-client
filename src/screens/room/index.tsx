@@ -34,6 +34,8 @@ interface CardInRoom extends ServerCard {
   index: number;
   isOwn: boolean;
   position: Animated.ValueXY;
+  initX: number;
+  initY: number;
 }
 
 export default function RoomScreen({
@@ -75,6 +77,8 @@ export default function RoomScreen({
                   x: 0,
                   y: -cardHeight * index + (ownCardsLength * cardHeight) / 2,
                 }),
+                initX: 0,
+                initY: -cardHeight * index + (ownCardsLength * cardHeight) / 2,
               };
               return cardInRoom;
             } else {
@@ -86,6 +90,8 @@ export default function RoomScreen({
                 index: index,
                 isOwn: true,
                 position: new Animated.ValueXY(),
+                initX: 0,
+                initY: -cardHeight * index + (ownCardsLength * cardHeight) / 2,
               };
               return unloadCard;
             }
@@ -189,6 +195,8 @@ export default function RoomScreen({
             }
           }}
           position={card.position}
+          initX={card.initX}
+          initY={card.initY}
         />
       ));
       return movableCardComponents;
@@ -197,6 +205,7 @@ export default function RoomScreen({
 
   // TODO 退出後再入室するとカードが表示されない
   // TODO 他の人が入ってきたときその人のカードが表示されない
+  // TODO initX, initYに正しい値を入れる
   const renderOpponentCard = (opponentCard: ServerCard | null) =>
     !opponentCard ? (
       <ActivityIndicator />
@@ -224,6 +233,8 @@ export default function RoomScreen({
           }
         }}
         position={opponentPan}
+        initX={0}
+        initY={0}
       />
     );
 

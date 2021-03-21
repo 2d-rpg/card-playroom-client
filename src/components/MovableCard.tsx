@@ -1,14 +1,13 @@
-import React, { ReactElement, useRef, useState } from "react";
-import { Animated, PanResponder, View } from "react-native";
+import React, { ReactElement, useState } from "react";
+import { Animated, View } from "react-native";
 import { Card } from "./Card";
 import {
   TapGestureHandler,
   PanGestureHandler,
   State,
+  PanGestureHandlerStateChangeEvent,
 } from "react-native-gesture-handler";
 import { TapGestureHandlerStateChangeEvent } from "react-native-gesture-handler";
-import { PanGestureHandlerGestureEvent } from "react-native-gesture-handler";
-import { event } from "react-native-reanimated";
 
 export const MovableCard = (props: {
   face: string | undefined;
@@ -18,7 +17,11 @@ export const MovableCard = (props: {
   endpoint: string;
   onCardRelease: () => void;
   position: Animated.ValueXY;
+  initX: number;
+  initY: number;
 }): ReactElement => {
+  const [lastOffsetX, setLastOffsetX] = useState(props.initX);
+  const [lastOffsetY, setLastOffsetY] = useState(props.initY);
   const doubleTapRef = React.createRef<TapGestureHandler>();
   const onSingleTap = (event: TapGestureHandlerStateChangeEvent) => {
     console.log(`1: ${event.nativeEvent.state}`);
@@ -36,15 +39,29 @@ export const MovableCard = (props: {
     [
       {
         nativeEvent: {
-          x: props.position.x,
-          y: props.position.y,
+          translationX: props.position.x,
+          translationY: props.position.y,
         },
       },
     ],
     { useNativeDriver: false }
   );
+  const onPanHandleStateChange = (event: PanGestureHandlerStateChangeEvent) => {
+    if (event.nativeEvent.oldState === State.ACTIVE) {
+      setLastOffsetX(lastOffsetX + event.nativeEvent.translationX);
+      setLastOffsetY(lastOffsetY + event.nativeEvent.translationY);
+    } else if (event.nativeEvent.state == State.BEGAN) {
+      props.position.x.setOffset(lastOffsetX);
+      props.position.x.setValue(0);
+      props.position.y.setOffset(lastOffsetY);
+      props.position.y.setValue(0);
+    }
+  };
   return (
-    <PanGestureHandler onGestureEvent={onPanGestureEvent}>
+    <PanGestureHandler
+      onGestureEvent={onPanGestureEvent}
+      onHandlerStateChange={onPanHandleStateChange}
+    >
       <Animated.View
         style={{
           transform: [
