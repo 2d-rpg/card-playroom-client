@@ -61,6 +61,7 @@ export default function RoomScreen({
       if (cardsQueryResult.error == null) {
         const serverCards = cardsQueryResult.data?.cards;
         if (serverCards != null) {
+          const ownCardsLength = cardIds.length;
           const ownCardsInRoom = cardIds.map((cardId, index) => {
             const serverCard = serverCards.find((card) => card.id === cardId);
             if (serverCard != null) {
@@ -70,7 +71,10 @@ export default function RoomScreen({
                 back: serverCard.back,
                 index: index,
                 isOwn: true,
-                position: new Animated.ValueXY(),
+                position: new Animated.ValueXY({
+                  x: 0,
+                  y: -cardHeight * index + (ownCardsLength * cardHeight) / 2,
+                }),
               };
               return cardInRoom;
             } else {
