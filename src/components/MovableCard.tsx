@@ -50,11 +50,17 @@ export const MovableCard = (props: {
     if (event.nativeEvent.oldState === State.ACTIVE) {
       setLastOffsetX(lastOffsetX + event.nativeEvent.translationX);
       setLastOffsetY(lastOffsetY + event.nativeEvent.translationY);
-    } else if (event.nativeEvent.state == State.BEGAN) {
+    }
+
+    if (event.nativeEvent.state == State.BEGAN) {
       props.position.x.setOffset(lastOffsetX);
       props.position.x.setValue(0);
       props.position.y.setOffset(lastOffsetY);
       props.position.y.setValue(0);
+    }
+
+    if (event.nativeEvent.state == State.END) {
+      props.onCardRelease();
     }
   };
   return (
