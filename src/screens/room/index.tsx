@@ -12,8 +12,13 @@ import { RouteProp } from "@react-navigation/native";
 import { RootStackParamList } from "../../../App";
 import { gql, useQuery } from "@apollo/client";
 import { MovableCard } from "../../components/MovableCard";
-import { ServerCard, ServerCards } from "../../utils/server-card-interface";
+import {
+  ServerCard,
+  ServerCards,
+  CardInRoom,
+} from "../../utils/server-card-interface";
 import { useValueRef } from "../../utils/use-value-ref";
+import { isCardsInfoMessage, WsMessage } from "../../utils/ws-message";
 
 // TODO カードを必要な分だけ取る
 const GET_SERVER_CARDS = gql`
@@ -29,14 +34,6 @@ const GET_SERVER_CARDS = gql`
 const windowHeight = Dimensions.get("window").height;
 const cardHeight = windowHeight / 3;
 const cardWidth = (cardHeight * 2) / 3;
-
-interface CardInRoom extends ServerCard {
-  index: number;
-  isOwn: boolean;
-  position: Animated.ValueXY;
-  initX: number;
-  initY: number;
-}
 
 export default function RoomScreen({
   route,
@@ -82,7 +79,7 @@ export default function RoomScreen({
               };
               return cardInRoom;
             } else {
-              // サーバーに指定されたIDのカードがない
+              // サーバーに指定されたIDのカードがない場合
               const unloadCard: CardInRoom = {
                 id: cardId,
                 face: undefined,
@@ -104,15 +101,13 @@ export default function RoomScreen({
 
   useEffect(() => {
     if (
-      firstOwnCard != null &&
+      ownCards != null &&
       websocket.current != null &&
       websocket.current.readyState === WebSocket.OPEN
     ) {
-      console.log("send own card info when changed!");
-      console.log(firstOwnCard);
-      websocket.current.send(JSON.stringify(firstOwnCard));
+      websocket.current.send(`/cards ${JSON.stringify(ownCards)}`);
     }
-  }, [firstOwnCard, websocket.current]);
+  }, [ownCards, websocket.current]);
 
   // WebSocket
   useEffect(() => {
@@ -125,35 +120,39 @@ export default function RoomScreen({
       };
       // イベント受け取り
       websocket.current.onmessage = (event) => {
-        if (websocket.current?.readyState === WebSocket.OPEN) {
-          console.log("received event:" + event.data);
-          // TODO サーバーからのメッセージの形式を統一する
-          if (event.data.startsWith('{"kind')) {
-            // TODO サーバ側ですべてjson parsableになるよう実装
-            const data = JSON.parse(event.data);
-            if (data.kind === "opponent") {
-              ownPan.setValue({ x: data.x, y: data.y });
-            } else {
-              opponentPan.setValue({ x: data.x, y: data.y });
-            }
-          } else if (event.data == "Someone connected") {
-            // TODO 3人以上のとき、2人以上から送られてくることになり、危険
-            console.log("!!!!!!!!!!!!!OUTSIDE!!!!!!!!!!!!!");
-            console.log(firstOwnCardRef.current);
-            if (firstOwnCardRef.current != null) {
-              console.log("!!!!!!!!!!!!!INSIDE!!!!!!!!!!!!!");
-              console.log("send Own card info when someone connected!");
-              websocket.current?.send(JSON.stringify(firstOwnCardRef.current));
-            }
-          } else if (
-            event.data.startsWith('{"__typename') ||
-            event.data.startsWith('{"id')
-          ) {
-            console.log("receive opponent card info");
-            const data = JSON.parse(event.data);
-            setFirstOpponentCard(data);
+        console.log("received event:" + event.data);
+        const json: WsMessage = JSON.parse(event.data);
+        if (isCardsInfoMessage(json)) {
+          if (json.data.length != 0 && json.data[0].isOwn) {
+            setOpponentCards(json.data);
           }
         }
+        // // TODO サーバーからのメッセージの形式を統一する
+        // if (event.data.startsWith('{"kind')) {
+        //   // TODO サーバ側ですべてjson parsableになるよう実装
+        //   const data = JSON.parse(event.data);
+        //   if (data.kind === "opponent") {
+        //     ownPan.setValue({ x: data.x, y: data.y });
+        //   } else {
+        //     opponentPan.setValue({ x: data.x, y: data.y });
+        //   }
+        // } else if (event.data == "Someone connected") {
+        //   // TODO 3人以上のとき、2人以上から送られてくることになり、危険
+        //   console.log("!!!!!!!!!!!!!OUTSIDE!!!!!!!!!!!!!");
+        //   console.log(firstOwnCardRef.current);
+        //   if (firstOwnCardRef.current != null) {
+        //     console.log("!!!!!!!!!!!!!INSIDE!!!!!!!!!!!!!");
+        //     console.log("send Own card info when someone connected!");
+        //     websocket.current?.send(JSON.stringify(firstOwnCardRef.current));
+        //   }
+        // } else if (
+        //   event.data.startsWith('{"__typename') ||
+        //   event.data.startsWith('{"id')
+        // ) {
+        //   console.log("receive opponent card info");
+        //   const data = JSON.parse(event.data);
+        //   setFirstOpponentCard(data);
+        // }
       };
     } catch (error) {
       // 設定読み込みエラー
