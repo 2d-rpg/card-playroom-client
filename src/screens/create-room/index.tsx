@@ -118,6 +118,7 @@ export default function CreateRoomScreen({
       .required("ルーム名を入力してください"),
   });
   // TODO Formik は遅いのでReact Hook Formを使う
+  // TODO デッキがなかったら部屋を作れないようにする
   return (
     <View style={styles.container}>
       <Formik

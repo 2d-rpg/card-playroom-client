@@ -240,7 +240,6 @@ export default function RoomScreen({
   // TODO WebSocket接続エラーの対応
   return (
     <View style={styles.container}>
-      <Text style={styles.titleText}>Drag this box!</Text>
       {movableCards(ownCards)}
       {renderOpponentCard(firstOpponentCard)}
     </View>

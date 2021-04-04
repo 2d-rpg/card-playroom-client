@@ -1,10 +1,5 @@
 import React, { ReactElement, useState, useEffect, useRef } from "react";
-import {
-  StyleSheet,
-  SafeAreaView,
-  FlatList,
-  ActivityIndicator,
-} from "react-native";
+import { StyleSheet, View, FlatList, ActivityIndicator } from "react-native";
 import { SearchBar, ListItem, Icon } from "react-native-elements";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../../../App";
@@ -213,7 +208,7 @@ export default function RoomListScreen({
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <SearchBar
         placeholder="ルーム検索"
         lightTheme
@@ -246,7 +241,7 @@ export default function RoomListScreen({
         onPressCancelButton={() => setIsVisibleRoomEnterConfirmDialog(false)}
         onPressEnterButton={enterRoom}
       />
-    </SafeAreaView>
+    </View>
   );
 }
 

@@ -18,6 +18,7 @@ export const DeckPicker = (props: {
       }}
       onValueChange={props.onValueChanged}
     >
+      <Picker.Item key="none" label="選択なし" value="none" />
       {props.items.map((pickerItem) => {
         return (
           <Picker.Item
