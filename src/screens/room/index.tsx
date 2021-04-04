@@ -186,7 +186,7 @@ export default function RoomScreen({
             ) {
               websocket.current.send(
                 JSON.stringify({
-                  index: 0,
+                  index: card.index,
                   x: card.position.x,
                   y: card.position.y,
                 })
