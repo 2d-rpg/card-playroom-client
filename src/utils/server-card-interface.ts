@@ -12,7 +12,7 @@ export interface ServerCards {
 
 export interface CardInRoom extends ServerCard {
   index: number;
-  isOwn: boolean;
+  own: boolean;
   position: Animated.ValueXY;
   initX: number;
   initY: number;

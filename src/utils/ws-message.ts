@@ -5,7 +5,12 @@ import { CardInRoom } from "./server-card-interface";
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Status = "Ok" | "Error";
-type Event = "GetRoomList" | "CreateRoom" | "EnterRoom" | "CardsInfoMessage";
+type Event =
+  | "GetRoomList"
+  | "CreateRoom"
+  | "EnterRoom"
+  | "CardsInfo"
+  | "SomeoneEnterRoom";
 
 export interface Room {
   id: string;
@@ -44,5 +49,14 @@ export interface CardsInfoMessage extends WsMessage {
   data: CardInRoom[];
 }
 export const isCardsInfoMessage = (arg: any): arg is CardsInfoMessage => {
-  return arg.status === "Ok" && arg.event === "CardsInfoMessage";
+  return arg.status === "Ok" && arg.event === "CardsInfo";
+};
+
+export interface SomeoneEnterRoomMessage extends WsMessage {
+  data: Room;
+}
+export const isSomeoneEnterRoomMessage = (
+  arg: any
+): arg is EnterRoomMessage => {
+  return arg.status === "Ok" && arg.event === "SomeoneEnterRoom";
 };

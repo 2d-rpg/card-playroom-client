@@ -18,7 +18,11 @@ import {
   CardInRoom,
 } from "../../utils/server-card-interface";
 import { useValueRef } from "../../utils/use-value-ref";
-import { isCardsInfoMessage, WsMessage } from "../../utils/ws-message";
+import {
+  isCardsInfoMessage,
+  isSomeoneEnterRoomMessage,
+  WsMessage,
+} from "../../utils/ws-message";
 
 // TODO カードを必要な分だけ取る
 const GET_SERVER_CARDS = gql`
@@ -69,7 +73,7 @@ export default function RoomScreen({
                 face: serverCard.face,
                 back: serverCard.back,
                 index: index,
-                isOwn: true,
+                own: true,
                 position: new Animated.ValueXY({
                   x: 0,
                   y: -cardHeight * index + (ownCardsLength * cardHeight) / 2,
@@ -85,7 +89,7 @@ export default function RoomScreen({
                 face: undefined,
                 back: undefined,
                 index: index,
-                isOwn: true,
+                own: true,
                 position: new Animated.ValueXY(),
                 initX: 0,
                 initY: -cardHeight * index + (ownCardsLength * cardHeight) / 2,
@@ -105,7 +109,15 @@ export default function RoomScreen({
       websocket.current != null &&
       websocket.current.readyState === WebSocket.OPEN
     ) {
-      websocket.current.send(`/cards ${JSON.stringify(ownCards)}`);
+      const cardsInfo = ownCards.map((ownCard) => {
+        return {
+          index: ownCard.index,
+          own: ownCard.own,
+          x: ownCard.position.x,
+          y: ownCard.position.y,
+        };
+      });
+      websocket.current.send(`/cards ${JSON.stringify(cardsInfo)}`);
     }
   }, [ownCards, websocket.current]);
 
@@ -123,8 +135,20 @@ export default function RoomScreen({
         console.log("received event:" + event.data);
         const json: WsMessage = JSON.parse(event.data);
         if (isCardsInfoMessage(json)) {
-          if (json.data.length != 0 && json.data[0].isOwn) {
+          if (json.data.length != 0 && !json.data[0].own) {
             setOpponentCards(json.data);
+          }
+        } else if (isSomeoneEnterRoomMessage(json)) {
+          if (ownCards != null) {
+            const cardsInfo = ownCards.map((ownCard) => {
+              return {
+                index: ownCard.index,
+                own: ownCard.own,
+                x: ownCard.position.x,
+                y: ownCard.position.y,
+              };
+            });
+            websocket.current?.send(`/cards ${JSON.stringify(cardsInfo)}`);
           }
         }
         // // TODO サーバーからのメッセージの形式を統一する
@@ -185,11 +209,14 @@ export default function RoomScreen({
               websocket.current.readyState == WebSocket.OPEN
             ) {
               websocket.current.send(
-                JSON.stringify({
-                  index: card.index,
-                  x: card.position.x,
-                  y: card.position.y,
-                })
+                `/cards ${JSON.stringify([
+                  {
+                    index: card.index,
+                    own: card.own,
+                    x: card.position.x,
+                    y: card.position.y,
+                  },
+                ])}`
               );
             }
           }}
@@ -223,11 +250,12 @@ export default function RoomScreen({
             websocket.current.readyState == WebSocket.OPEN
           ) {
             websocket.current.send(
-              JSON.stringify({
+              `/cards ${JSON.stringify({
                 index: 0,
+                own: false,
                 x: opponentPan.x,
                 y: opponentPan.y,
-              })
+              })}`
             );
           }
         }}
