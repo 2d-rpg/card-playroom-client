@@ -47,14 +47,10 @@ export default function RoomScreen({
   const { roomid, endpoint, cardIds } = route.params;
   const websocket = useRef<WebSocket | null>(null);
   const cardsQueryResult = useQuery<ServerCards>(GET_SERVER_CARDS);
-  const [firstOwnCard, setFirstOwnCard] = useState<ServerCard | null>(null);
-  const firstOwnCardRef = useRef<ServerCard | null>(firstOwnCard);
-  const [firstOpponentCard, setFirstOpponentCard] = useState<ServerCard | null>(
-    null
-  );
-  const [ownCards, setOwnCards] = useState<CardInRoom[] | null>(null);
+  const [ownCards, setOwnCards] = useState<CardInRoom[]>([]);
   const refOwnCards = useValueRef(ownCards);
   const [opponentCards, setOpponentCards] = useState<CardInRoom[]>([]);
+  const refOpponentCards = useValueRef(opponentCards);
   const [ownPan, setOwnPan] = useState(new Animated.ValueXY());
   const [opponentPan, setOpponentPan] = useState(new Animated.ValueXY());
 
@@ -69,7 +65,8 @@ export default function RoomScreen({
             const serverCard = serverCards.find((card) => card.id === cardId);
             if (serverCard != null) {
               const cardInRoom: CardInRoom = {
-                id: cardId,
+                // *HACK: おそらくApolloの影響でcardIdがStringとして解釈されるのでNumberにキャスト
+                id: Number(cardId),
                 face: serverCard.face,
                 back: serverCard.back,
                 index: index,
@@ -78,21 +75,22 @@ export default function RoomScreen({
                   x: 0,
                   y: -cardHeight * index + (ownCardsLength * cardHeight) / 2,
                 }),
-                initX: 0,
-                initY: -cardHeight * index + (ownCardsLength * cardHeight) / 2,
+                initx: 0,
+                inity: -cardHeight * index + (ownCardsLength * cardHeight) / 2,
               };
               return cardInRoom;
             } else {
               // サーバーに指定されたIDのカードがない場合
               const unloadCard: CardInRoom = {
-                id: cardId,
+                // *HACK: おそらくApolloの影響でcardIdがStringとして解釈されるのでNumberにキャスト
+                id: Number(cardId),
                 face: undefined,
                 back: undefined,
                 index: index,
                 own: true,
                 position: new Animated.ValueXY(),
-                initX: 0,
-                initY: -cardHeight * index + (ownCardsLength * cardHeight) / 2,
+                initx: 0,
+                inity: -cardHeight * index + (ownCardsLength * cardHeight) / 2,
               };
               return unloadCard;
             }
@@ -105,16 +103,20 @@ export default function RoomScreen({
 
   useEffect(() => {
     if (
-      ownCards != null &&
+      ownCards.length !== 0 &&
       websocket.current != null &&
       websocket.current.readyState === WebSocket.OPEN
     ) {
       const cardsInfo = ownCards.map((ownCard) => {
         return {
+          id: ownCard.id,
+          face: ownCard.face,
+          back: ownCard.back,
           index: ownCard.index,
-          own: ownCard.own,
-          x: ownCard.position.x,
-          y: ownCard.position.y,
+          own: !ownCard.own,
+          position: ownCard.position,
+          initx: ownCard.initx,
+          inity: ownCard.inity,
         };
       });
       websocket.current.send(`/cards ${JSON.stringify(cardsInfo)}`);
@@ -135,19 +137,38 @@ export default function RoomScreen({
         console.log("received event:" + event.data);
         const json: WsMessage = JSON.parse(event.data);
         if (isCardsInfoMessage(json)) {
-          if (json.data.length != 0 && !json.data[0].own) {
+          if (json.data.length !== 0 && refOpponentCards.current.length === 0) {
             setOpponentCards(json.data);
+          } else if (
+            json.data.length === 1 &&
+            refOpponentCards.current.length !== 0
+          ) {
+            const copyOpponentCards = Array.from(refOpponentCards.current);
+            const newInfoCard = json.data[0];
+            const index = copyOpponentCards.findIndex(
+              (card) => card.index === newInfoCard.index
+            );
+            if (index !== -1) {
+              copyOpponentCards.splice(index, 1);
+              setOpponentCards([...copyOpponentCards, newInfoCard]);
+            }
           }
         } else if (isSomeoneEnterRoomMessage(json)) {
-          if (ownCards != null) {
-            const cardsInfo = ownCards.map((ownCard) => {
+          if (refOwnCards.current != null) {
+            const cardsInfo = refOwnCards.current.map((ownCard) => {
               return {
+                id: ownCard.id,
+                face: ownCard.face,
+                back: ownCard.back,
                 index: ownCard.index,
-                own: ownCard.own,
-                x: ownCard.position.x,
-                y: ownCard.position.y,
+                own: !ownCard.own,
+                position: ownCard.position,
+                initx: ownCard.initx,
+                inity: ownCard.inity,
               };
             });
+            console.log(typeof cardsInfo[0].id);
+            console.log(`SE: ${JSON.stringify(cardsInfo)}`);
             websocket.current?.send(`/cards ${JSON.stringify(cardsInfo)}`);
           }
         }
@@ -208,21 +229,36 @@ export default function RoomScreen({
               websocket.current != null &&
               websocket.current.readyState == WebSocket.OPEN
             ) {
+              console.log(
+                `MC: ${JSON.stringify([
+                  {
+                    index: card.index,
+                    own: !card.own,
+                    x: card.position.x,
+                    y: card.position.y,
+                  },
+                ])}`
+              );
               websocket.current.send(
                 `/cards ${JSON.stringify([
                   {
+                    // *HACK: おそらくApolloの影響でcardIdがStringとして解釈されるのでNumberにキャスト
+                    id: Number(card.id),
+                    face: card.face,
+                    back: card.back,
                     index: card.index,
-                    own: card.own,
-                    x: card.position.x,
-                    y: card.position.y,
+                    own: !card.own,
+                    position: card.position,
+                    initx: card.initx,
+                    inity: card.inity,
                   },
                 ])}`
               );
             }
           }}
           position={card.position}
-          initX={card.initX}
-          initY={card.initY}
+          initx={card.initx}
+          inity={card.inity}
         />
       ));
       return movableCardComponents;
@@ -231,7 +267,7 @@ export default function RoomScreen({
 
   // TODO 退出後再入室するとカードが表示されない
   // TODO 他の人が入ってきたときその人のカードが表示されない
-  // TODO initX, initYに正しい値を入れる
+  // TODO initx, inityに正しい値を入れる
   const renderOpponentCard = (opponentCard: ServerCard | null) =>
     !opponentCard ? (
       <ActivityIndicator />
@@ -252,7 +288,7 @@ export default function RoomScreen({
             websocket.current.send(
               `/cards ${JSON.stringify({
                 index: 0,
-                own: false,
+                own: true,
                 x: opponentPan.x,
                 y: opponentPan.y,
               })}`
@@ -260,16 +296,20 @@ export default function RoomScreen({
           }
         }}
         position={opponentPan}
-        initX={0}
-        initY={0}
+        initx={0}
+        inity={0}
       />
     );
 
   // TODO WebSocket接続エラーの対応
+  console.log(`OC${JSON.stringify(ownCards)}`);
+  console.log(`OCR${JSON.stringify(refOwnCards.current)}`);
+  console.log(`OPC${JSON.stringify(opponentCards)}`);
+  console.log(`OPCR${JSON.stringify(refOpponentCards.current)}`);
   return (
     <View style={styles.container}>
       {movableCards(ownCards)}
-      {renderOpponentCard(firstOpponentCard)}
+      {movableCards(refOpponentCards.current)}
     </View>
   );
 }
