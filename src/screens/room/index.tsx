@@ -74,8 +74,6 @@ export default function RoomScreen({
                   x: 0,
                   y: 0,
                 }),
-                initx: 0,
-                inity: 0,
               };
               return cardInRoom;
             } else {
@@ -88,8 +86,6 @@ export default function RoomScreen({
                 index: index,
                 own: true,
                 position: new Animated.ValueXY(),
-                initx: 0,
-                inity: 0,
               };
               return unloadCard;
             }
@@ -117,8 +113,6 @@ export default function RoomScreen({
                   index: ownCard.index,
                   own: !ownCard.own,
                   position: newPosition,
-                  initx: ownCard.initx,
-                  inity: ownCard.inity + cardHeight,
                 };
               });
               websocket.current?.send(`/cards ${JSON.stringify(cardsInfo)}`);
@@ -132,8 +126,6 @@ export default function RoomScreen({
                     index: card.index,
                     own: card.own,
                     position: new Animated.ValueXY(card.position),
-                    initx: card.initx,
-                    inity: card.inity,
                   };
                 }
               );
@@ -151,8 +143,6 @@ export default function RoomScreen({
                   index: ownCard.index,
                   own: !ownCard.own,
                   position: newPosition,
-                  initx: ownCard.initx,
-                  inity: ownCard.inity + cardHeight,
                 };
               });
               websocket.current?.send(`/cards ${JSON.stringify(cardsInfo)}`);
@@ -212,16 +202,12 @@ export default function RoomScreen({
               //       index: card.index,
               //       own: !card.own,
               //       position: card.position,
-              //       initx: card.initx,
-              //       inity: card.inity,
               //     },
               //   ])}`
               // );
             }
           }}
           position={card.position}
-          initx={card.initx}
-          inity={card.inity}
         />
       ));
       return movableCardComponents;

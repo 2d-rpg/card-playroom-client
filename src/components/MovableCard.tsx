@@ -17,11 +17,9 @@ export const MovableCard = (props: {
   endpoint: string;
   onCardRelease: () => void;
   position: Animated.ValueXY;
-  initx: number;
-  inity: number;
 }): ReactElement => {
-  const [lastOffsetX, setLastOffsetX] = useState(props.initx);
-  const [lastOffsetY, setLastOffsetY] = useState(props.inity);
+  const [lastOffsetX, setLastOffsetX] = useState(0);
+  const [lastOffsetY, setLastOffsetY] = useState(0);
   const doubleTapRef = React.createRef<TapGestureHandler>();
   const onSingleTap = (event: TapGestureHandlerStateChangeEvent) => {
     // console.log(`1: ${event.nativeEvent.state}`);
