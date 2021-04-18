@@ -115,7 +115,9 @@ export default function RoomScreen({
                   position: newPosition,
                 };
               });
-              websocket.current?.send(`/cards ${JSON.stringify(cardsInfo)}`);
+              websocket.current?.send(
+                `/first-cards ${JSON.stringify(cardsInfo)}`
+              );
             } else if (isFirstCardsInfoMessage(wsMessage)) {
               const opponentCardsInfo: CardInRoom[] = wsMessage.data.map(
                 (card) => {
@@ -145,7 +147,9 @@ export default function RoomScreen({
                   position: newPosition,
                 };
               });
-              websocket.current?.send(`/cards ${JSON.stringify(cardsInfo)}`);
+              websocket.current?.send(
+                `/first-cards ${JSON.stringify(cardsInfo)}`
+              );
             }
           };
         }
