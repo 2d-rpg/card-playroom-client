@@ -9,7 +9,7 @@ type Event =
   | "GetRoomList"
   | "CreateRoom"
   | "EnterRoom"
-  | "CardsInfo"
+  | "FirstCardsInfo"
   | "SomeoneEnterRoom";
 
 export interface Room {
@@ -45,10 +45,12 @@ export const isCreateRoomMessage = (arg: any): arg is CreateRoomMessage => {
   return arg.status === "Ok" && arg.event === "CreateRoom";
 };
 
-export interface CardsInfoMessage extends WsMessage {
+export interface FirstCardsInfoMessage extends WsMessage {
   data: CardInRoom[];
 }
-export const isCardsInfoMessage = (arg: any): arg is CardsInfoMessage => {
+export const isFirstCardsInfoMessage = (
+  arg: any
+): arg is FirstCardsInfoMessage => {
   return arg.status === "Ok" && arg.event === "CardsInfo";
 };
 

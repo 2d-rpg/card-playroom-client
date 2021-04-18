@@ -19,7 +19,7 @@ import {
 } from "../../utils/server-card-interface";
 import { useValueRef } from "../../utils/use-value-ref";
 import {
-  isCardsInfoMessage,
+  isFirstCardsInfoMessage,
   isEnterRoomMessage,
   isSomeoneEnterRoomMessage,
   WsMessage,
@@ -116,7 +116,7 @@ export default function RoomScreen({
                 };
               });
               websocket.current?.send(`/cards ${JSON.stringify(cardsInfo)}`);
-            } else if (isCardsInfoMessage(wsMessage)) {
+            } else if (isFirstCardsInfoMessage(wsMessage)) {
               const opponentCardsInfo: CardInRoom[] = wsMessage.data.map(
                 (card) => {
                   return {
