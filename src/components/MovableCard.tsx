@@ -20,18 +20,17 @@ export const MovableCard = (props: {
   initx: number;
   inity: number;
 }): ReactElement => {
-  console.log(`Props: ${JSON.stringify(props)}`);
   const [lastOffsetX, setLastOffsetX] = useState(props.initx);
   const [lastOffsetY, setLastOffsetY] = useState(props.inity);
   const doubleTapRef = React.createRef<TapGestureHandler>();
   const onSingleTap = (event: TapGestureHandlerStateChangeEvent) => {
-    console.log(`1: ${event.nativeEvent.state}`);
+    // console.log(`1: ${event.nativeEvent.state}`);
     if (event.nativeEvent.state === State.ACTIVE) {
-      console.log("single tap");
+      // console.log("single tap");
     }
   };
   const onDoubleTap = (event: TapGestureHandlerStateChangeEvent) => {
-    console.log(`2: ${event.nativeEvent.state}`);
+    // console.log(`2: ${event.nativeEvent.state}`);
     if (event.nativeEvent.state === State.ACTIVE) {
       console.log("double tap");
     }
@@ -75,6 +74,7 @@ export const MovableCard = (props: {
             { translateX: props.position.x },
             { translateY: props.position.y },
           ],
+          position: "absolute",
         }}
       >
         <TapGestureHandler
