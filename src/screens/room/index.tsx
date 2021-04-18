@@ -20,6 +20,7 @@ import {
 import { useValueRef } from "../../utils/use-value-ref";
 import {
   isCardsInfoMessage,
+  isEnterRoomMessage,
   isSomeoneEnterRoomMessage,
   WsMessage,
 } from "../../utils/ws-message";
@@ -44,7 +45,146 @@ export default function RoomScreen({
 }: {
   route: RoomScreenRouteProp;
 }): ReactElement {
-  return <View style={styles.container}></View>;
+  const { roomid, endpoint, cardIds } = route.params;
+  const websocket = useRef<WebSocket | null>(null);
+  const cardsQueryResult = useQuery<ServerCards>(GET_SERVER_CARDS);
+  const [ownCards, setOwnCards] = useState<CardInRoom[]>([]);
+  const refOwnCards = useValueRef(ownCards);
+  const [opponentCards, setOpponentCards] = useState<CardInRoom[]>([]);
+  const refOpponentCards = useValueRef(opponentCards);
+
+  // カードをサーバーからロード
+  useEffect(() => {
+    if (cardsQueryResult != null && !cardsQueryResult.loading) {
+      if (cardsQueryResult.error == null) {
+        const serverCards = cardsQueryResult.data?.cards;
+        if (serverCards != null) {
+          const ownCardsLength = cardIds.length;
+          const ownCardsInRoom = cardIds.map((cardId, index) => {
+            const serverCard = serverCards.find((card) => card.id === cardId);
+            if (serverCard != null) {
+              const cardInRoom: CardInRoom = {
+                // *HACK: おそらくApolloの影響でcardIdがStringとして解釈されるのでNumberにキャスト
+                id: Number(cardId),
+                face: serverCard.face,
+                back: serverCard.back,
+                index: index,
+                own: true,
+                position: new Animated.ValueXY({
+                  x: 0,
+                  y: -cardHeight * index + (ownCardsLength * cardHeight) / 2,
+                }),
+                initx: 0,
+                inity: -cardHeight * index + (ownCardsLength * cardHeight) / 2,
+              };
+              return cardInRoom;
+            } else {
+              // サーバーに指定されたIDのカードがない場合
+              const unloadCard: CardInRoom = {
+                // *HACK: おそらくApolloの影響でcardIdがStringとして解釈されるのでNumberにキャスト
+                id: Number(cardId),
+                face: undefined,
+                back: undefined,
+                index: index,
+                own: true,
+                position: new Animated.ValueXY(),
+                initx: 0,
+                inity: -cardHeight * index + (ownCardsLength * cardHeight) / 2,
+              };
+              return unloadCard;
+            }
+          });
+          setOwnCards(ownCardsInRoom);
+
+          websocket.current = new WebSocket(`ws://${endpoint}/ws`);
+          websocket.current.onopen = () => {
+            // ルーム入室
+            console.log("websocket opened!");
+            websocket.current?.send(`/join ${roomid}`);
+          };
+          websocket.current.onmessage = (event) => {
+            const wsMessage: WsMessage = JSON.parse(event.data);
+            if (isEnterRoomMessage(wsMessage)) {
+              const cardsInfo = refOwnCards.current.map((ownCard) => {
+                return {
+                  id: ownCard.id,
+                  face: ownCard.face,
+                  back: ownCard.back,
+                  index: ownCard.index,
+                  own: !ownCard.own,
+                  position: ownCard.position,
+                  initx: ownCard.initx,
+                  inity: ownCard.inity,
+                };
+              });
+              websocket.current?.send(`/cards ${JSON.stringify(cardsInfo)}`);
+            }
+          };
+        }
+      }
+    }
+  }, [cardsQueryResult]);
+
+  const movableCards = (cards: CardInRoom[] | null) => {
+    if (cards == null) {
+      return <ActivityIndicator />;
+    } else {
+      const movableCardComponents = cards.map((card) => (
+        <MovableCard
+          key={card.index}
+          face={card.face}
+          back={card.back}
+          width={cardWidth}
+          height={cardHeight}
+          endpoint={endpoint}
+          onCardRelease={() => {
+            card.position.flattenOffset();
+            // ポジションをjsonとしてサーバに送信
+            if (
+              websocket.current != null &&
+              websocket.current.readyState == WebSocket.OPEN
+            ) {
+              // console.log(
+              //   `MC: ${JSON.stringify([
+              //     {
+              //       index: card.index,
+              //       own: !card.own,
+              //       x: card.position.x,
+              //       y: card.position.y,
+              //     },
+              //   ])}`
+              // );
+              // websocket.current.send(
+              //   `/cards ${JSON.stringify([
+              //     {
+              //       // *HACK: おそらくApolloの影響でcardIdがStringとして解釈されるのでNumberにキャスト
+              //       id: Number(card.id),
+              //       face: card.face,
+              //       back: card.back,
+              //       index: card.index,
+              //       own: !card.own,
+              //       position: card.position,
+              //       initx: card.initx,
+              //       inity: card.inity,
+              //     },
+              //   ])}`
+              // );
+            }
+          }}
+          position={card.position}
+          initx={card.initx}
+          inity={card.inity}
+        />
+      ));
+      return movableCardComponents;
+    }
+  };
+  return (
+    <View style={styles.container}>
+      {movableCards(ownCards)}
+      {movableCards(refOpponentCards.current)}
+    </View>
+  );
 }
 
 type RoomScreenRouteProp = RouteProp<RootStackParamList, "Room">;
