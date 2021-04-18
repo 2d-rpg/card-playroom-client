@@ -265,42 +265,6 @@ export default function RoomScreen({
     }
   };
 
-  // TODO 退出後再入室するとカードが表示されない
-  // TODO 他の人が入ってきたときその人のカードが表示されない
-  // TODO initx, inityに正しい値を入れる
-  const renderOpponentCard = (opponentCard: ServerCard | null) =>
-    !opponentCard ? (
-      <ActivityIndicator />
-    ) : (
-      <MovableCard
-        face={opponentCard.face}
-        back={opponentCard.back}
-        width={cardWidth}
-        height={cardHeight}
-        endpoint={endpoint}
-        onCardRelease={() => {
-          opponentPan.flattenOffset();
-          // ポジションをjsonとしてサーバに送信
-          if (
-            websocket.current != null &&
-            websocket.current.readyState == WebSocket.OPEN
-          ) {
-            websocket.current.send(
-              `/cards ${JSON.stringify({
-                index: 0,
-                own: true,
-                x: opponentPan.x,
-                y: opponentPan.y,
-              })}`
-            );
-          }
-        }}
-        position={opponentPan}
-        initx={0}
-        inity={0}
-      />
-    );
-
   // TODO WebSocket接続エラーの対応
   console.log(`OC${JSON.stringify(ownCards)}`);
   console.log(`OCR${JSON.stringify(refOwnCards.current)}`);
