@@ -123,7 +123,21 @@ export default function RoomScreen({
               });
               websocket.current?.send(`/cards ${JSON.stringify(cardsInfo)}`);
             } else if (isCardsInfoMessage(wsMessage)) {
-              setOpponentCards(wsMessage.data);
+              const opponentCardsInfo: CardInRoom[] = wsMessage.data.map(
+                (card) => {
+                  return {
+                    id: card.id,
+                    face: card.face,
+                    back: card.back,
+                    index: card.index,
+                    own: card.own,
+                    position: new Animated.ValueXY(card.position),
+                    initx: card.initx,
+                    inity: card.inity,
+                  };
+                }
+              );
+              setOpponentCards(opponentCardsInfo);
             } else if (isSomeoneEnterRoomMessage(wsMessage)) {
               const cardsInfo = refOwnCards.current.map((ownCard) => {
                 const newPosition = new Animated.ValueXY({
@@ -171,6 +185,7 @@ export default function RoomScreen({
           height={cardHeight}
           endpoint={endpoint}
           onCardRelease={() => {
+            console.log(card.position);
             card.position.flattenOffset();
             // ポジションをjsonとしてサーバに送信
             if (
