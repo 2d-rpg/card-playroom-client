@@ -54,13 +54,23 @@ export default function RoomScreen({
   const [opponentCards, setOpponentCards] = useState<CardInRoom[]>([]);
   const refOpponentCards = useValueRef(opponentCards);
 
+  const updateCardsArray = (
+    cardArray: CardInRoom[],
+    newCard: CardInRoom
+  ): void => {
+    const index = cardArray.findIndex((card) => card.index === newCard.index);
+    if (index !== -1) {
+      cardArray.splice(index, 1);
+      cardArray.push(newCard);
+    }
+  };
+
   // カードをサーバーからロード
   useEffect(() => {
     if (cardsQueryResult != null && !cardsQueryResult.loading) {
       if (cardsQueryResult.error == null) {
         const serverCards = cardsQueryResult.data?.cards;
         if (serverCards != null) {
-          const ownCardsLength = cardIds.length;
           const ownCardsInRoom = cardIds.map((cardId, index) => {
             const serverCard = serverCards.find((card) => card.id === cardId);
             if (serverCard != null) {
@@ -75,6 +85,8 @@ export default function RoomScreen({
                   x: 0,
                   y: 0,
                 }),
+                offsetx: 0,
+                offsety: 0,
               };
               return cardInRoom;
             } else {
@@ -87,6 +99,8 @@ export default function RoomScreen({
                 index: index,
                 own: true,
                 position: new Animated.ValueXY(),
+                offsetx: 0,
+                offsety: 0,
               };
               return unloadCard;
             }
@@ -102,38 +116,46 @@ export default function RoomScreen({
           websocket.current.onmessage = (event) => {
             const wsMessage: WsMessage = JSON.parse(event.data);
             if (isEnterRoomMessage(wsMessage)) {
-              const cardsInfo = refOwnCards.current.map((ownCard) => {
-                const newPosition = new Animated.ValueXY({
-                  x: 0,
-                  y: cardHeight,
-                });
-                return {
-                  id: ownCard.id,
-                  face: ownCard.face,
-                  back: ownCard.back,
-                  index: ownCard.index,
-                  own: !ownCard.own,
-                  position: newPosition,
-                };
-              });
+              const cardsInfo: CardInRoom[] = refOwnCards.current.map(
+                (ownCard) => {
+                  const newPosition = new Animated.ValueXY({
+                    x: 0,
+                    y: cardHeight,
+                  });
+                  return {
+                    id: ownCard.id,
+                    face: ownCard.face,
+                    back: ownCard.back,
+                    index: ownCard.index,
+                    own: !ownCard.own,
+                    position: newPosition,
+                    offsetx: ownCard.offsetx,
+                    offsety: ownCard.offsety,
+                  };
+                }
+              );
               websocket.current?.send(
                 `/first-cards ${JSON.stringify(cardsInfo)}`
               );
             } else if (isSomeoneEnterRoomMessage(wsMessage)) {
-              const cardsInfo = refOwnCards.current.map((ownCard) => {
-                const newPosition = new Animated.ValueXY({
-                  x: 0,
-                  y: cardHeight,
-                });
-                return {
-                  id: ownCard.id,
-                  face: ownCard.face,
-                  back: ownCard.back,
-                  index: ownCard.index,
-                  own: !ownCard.own,
-                  position: newPosition,
-                };
-              });
+              const cardsInfo: CardInRoom[] = refOwnCards.current.map(
+                (ownCard) => {
+                  const newPosition = new Animated.ValueXY({
+                    x: 0,
+                    y: cardHeight,
+                  });
+                  return {
+                    id: ownCard.id,
+                    face: ownCard.face,
+                    back: ownCard.back,
+                    index: ownCard.index,
+                    own: !ownCard.own,
+                    position: newPosition,
+                    offsetx: ownCard.offsetx,
+                    offsety: ownCard.offsety,
+                  };
+                }
+              );
               websocket.current?.send(
                 `/first-cards ${JSON.stringify(cardsInfo)}`
               );
@@ -147,6 +169,8 @@ export default function RoomScreen({
                     index: card.index,
                     own: card.own,
                     position: new Animated.ValueXY(card.position),
+                    offsetx: card.offsetx,
+                    offsety: card.offsety,
                   };
                 }
               );
@@ -160,9 +184,22 @@ export default function RoomScreen({
                   index: card.index,
                   own: card.own,
                   position: new Animated.ValueXY(card.position),
+                  offsetx: card.offsetx,
+                  offsety: card.offsety,
                 };
               });
               // TODO updateOwnCards or updateOpponentCards
+              const newOwnCards = Array.from(refOwnCards.current);
+              const newOpponentCards = Array.from(refOpponentCards.current);
+              for (const cardInfo of cardsInfo) {
+                if (cardInfo.own) {
+                  updateCardsArray(newOwnCards, cardInfo);
+                } else {
+                  updateCardsArray(newOpponentCards, cardInfo);
+                }
+              }
+              setOwnCards(newOwnCards);
+              setOpponentCards(newOpponentCards);
             }
           };
         }
@@ -199,21 +236,24 @@ export default function RoomScreen({
               websocket.current != null &&
               websocket.current.readyState == WebSocket.OPEN
             ) {
-              websocket.current.send(
-                `/cards ${JSON.stringify([
-                  {
-                    id: card.id,
-                    face: card.face,
-                    back: card.back,
-                    index: card.index,
-                    own: !card.own,
-                    position: card.position,
-                  },
-                ])}`
-              );
+              const cardsInfo: CardInRoom[] = [
+                {
+                  id: card.id,
+                  face: card.face,
+                  back: card.back,
+                  index: card.index,
+                  own: !card.own,
+                  position: card.position,
+                  offsetx: card.offsetx,
+                  offsety: card.offsety,
+                },
+              ];
+              websocket.current.send(`/cards ${JSON.stringify(cardsInfo)}`);
             }
           }}
           position={card.position}
+          offsetx={card.offsetx}
+          offsety={card.offsety}
         />
       ));
       return movableCardComponents;
