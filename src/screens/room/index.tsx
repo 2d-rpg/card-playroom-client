@@ -2,7 +2,6 @@ import React, { ReactElement, useRef, useEffect, useState } from "react";
 import {
   StyleSheet,
   View,
-  Text,
   Animated,
   Dimensions,
   ActivityIndicator,
@@ -12,11 +11,7 @@ import { RouteProp } from "@react-navigation/native";
 import { RootStackParamList } from "../../../App";
 import { gql, useQuery } from "@apollo/client";
 import { MovableCard } from "../../components/MovableCard";
-import {
-  ServerCard,
-  ServerCards,
-  CardInRoom,
-} from "../../utils/server-card-interface";
+import { ServerCards, CardInRoom } from "../../utils/server-card-interface";
 import { useValueRef } from "../../utils/use-value-ref";
 import {
   isFirstCardsInfoMessage,
@@ -68,7 +63,6 @@ export default function RoomScreen({
   // カードをサーバーからロード
   useEffect(() => {
     if (cardsQueryResult != null && !cardsQueryResult.loading) {
-      const hoge = new Animated.Value(0.1);
       if (cardsQueryResult.error == null) {
         const serverCards = cardsQueryResult.data?.cards;
         if (serverCards != null) {
