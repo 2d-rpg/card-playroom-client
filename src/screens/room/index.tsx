@@ -6,7 +6,6 @@ import {
   Dimensions,
   ActivityIndicator,
 } from "react-native";
-// import { StackNavigationProp } from "@react-navigation/stack";
 import { RouteProp } from "@react-navigation/native";
 import { RootStackParamList } from "../../../App";
 import { gql, useQuery } from "@apollo/client";
