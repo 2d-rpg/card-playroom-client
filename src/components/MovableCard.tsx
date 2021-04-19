@@ -17,11 +17,12 @@ export const MovableCard = (props: {
   endpoint: string;
   onCardRelease: () => void;
   position: Animated.ValueXY;
-  offsetx: number;
-  offsety: number;
 }): ReactElement => {
-  const [lastOffsetX, setLastOffsetX] = useState(props.offsetx);
-  const [lastOffsetY, setLastOffsetY] = useState(props.offsety);
+  const animatedValueToNumber = (animatedValue: Animated.Value): number => {
+    const json = { val: animatedValue };
+    const strValue = JSON.parse(JSON.stringify(json))["val"];
+    return Number(strValue);
+  };
   const doubleTapRef = React.createRef<TapGestureHandler>();
   const onSingleTap = (event: TapGestureHandlerStateChangeEvent) => {
     // console.log(`1: ${event.nativeEvent.state}`);
@@ -47,18 +48,10 @@ export const MovableCard = (props: {
     { useNativeDriver: false }
   );
   const onPanHandleStateChange = (event: PanGestureHandlerStateChangeEvent) => {
-    if (event.nativeEvent.oldState === State.ACTIVE) {
-      console.log(lastOffsetX);
-      console.log(lastOffsetX + event.nativeEvent.translationX);
-      setLastOffsetX(lastOffsetX + event.nativeEvent.translationX);
-      setLastOffsetY(lastOffsetY + event.nativeEvent.translationY);
-      console.log(lastOffsetX);
-    }
-
     if (event.nativeEvent.state == State.BEGAN) {
-      props.position.x.setOffset(lastOffsetX);
+      props.position.x.setOffset(animatedValueToNumber(props.position.x));
       props.position.x.setValue(0);
-      props.position.y.setOffset(lastOffsetY);
+      props.position.y.setOffset(animatedValueToNumber(props.position.y));
       props.position.y.setValue(0);
     }
 

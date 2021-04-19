@@ -85,8 +85,6 @@ export default function RoomScreen({
                   x: 0,
                   y: 0,
                 }),
-                offsetx: 0,
-                offsety: 0,
               };
               return cardInRoom;
             } else {
@@ -99,8 +97,6 @@ export default function RoomScreen({
                 index: index,
                 own: true,
                 position: new Animated.ValueXY(),
-                offsetx: 0,
-                offsety: 0,
               };
               return unloadCard;
             }
@@ -129,8 +125,6 @@ export default function RoomScreen({
                     index: ownCard.index,
                     own: !ownCard.own,
                     position: newPosition,
-                    offsetx: ownCard.offsetx,
-                    offsety: ownCard.offsety,
                   };
                 }
               );
@@ -151,8 +145,6 @@ export default function RoomScreen({
                     index: ownCard.index,
                     own: !ownCard.own,
                     position: newPosition,
-                    offsetx: ownCard.offsetx,
-                    offsety: ownCard.offsety,
                   };
                 }
               );
@@ -169,8 +161,6 @@ export default function RoomScreen({
                     index: card.index,
                     own: card.own,
                     position: new Animated.ValueXY(card.position),
-                    offsetx: card.offsetx,
-                    offsety: card.offsety,
                   };
                 }
               );
@@ -184,8 +174,6 @@ export default function RoomScreen({
                   index: card.index,
                   own: card.own,
                   position: new Animated.ValueXY(card.position),
-                  offsetx: card.offsetx,
-                  offsety: card.offsety,
                 };
               });
               // TODO updateOwnCards or updateOpponentCards
@@ -244,16 +232,12 @@ export default function RoomScreen({
                   index: card.index,
                   own: !card.own,
                   position: card.position,
-                  offsetx: card.offsetx,
-                  offsety: card.offsety,
                 },
               ];
               websocket.current.send(`/cards ${JSON.stringify(cardsInfo)}`);
             }
           }}
           position={card.position}
-          offsetx={card.offsetx}
-          offsety={card.offsety}
         />
       ));
       return movableCardComponents;

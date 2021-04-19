@@ -14,6 +14,4 @@ export interface CardInRoom extends ServerCard {
   index: number;
   own: boolean;
   position: Animated.ValueXY;
-  offsetx: number;
-  offsety: number;
 }
