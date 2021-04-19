@@ -68,6 +68,7 @@ export default function RoomScreen({
   // カードをサーバーからロード
   useEffect(() => {
     if (cardsQueryResult != null && !cardsQueryResult.loading) {
+      const hoge = new Animated.Value(0.1);
       if (cardsQueryResult.error == null) {
         const serverCards = cardsQueryResult.data?.cards;
         if (serverCards != null) {

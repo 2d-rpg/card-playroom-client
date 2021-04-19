@@ -19,8 +19,7 @@ export const MovableCard = (props: {
   position: Animated.ValueXY;
 }): ReactElement => {
   const animatedValueToNumber = (animatedValue: Animated.Value): number => {
-    const json = { val: animatedValue };
-    const strValue = JSON.parse(JSON.stringify(json))["val"];
+    const strValue = JSON.stringify(animatedValue);
     return Number(strValue);
   };
   const doubleTapRef = React.createRef<TapGestureHandler>();
