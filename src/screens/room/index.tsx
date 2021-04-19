@@ -170,7 +170,6 @@ export default function RoomScreen({
                   position: new Animated.ValueXY(card.position),
                 };
               });
-              // TODO updateOwnCards or updateOpponentCards
               const newOwnCards = Array.from(refOwnCards.current);
               const newOpponentCards = Array.from(refOpponentCards.current);
               for (const cardInfo of cardsInfo) {
@@ -237,6 +236,11 @@ export default function RoomScreen({
       return movableCardComponents;
     }
   };
+  // TODO カードのZ座標の決め方
+  // TODO カードの位置を自分からの見え方，相手からの見え方で変える
+  // TODO カードをまとめて動かす
+  // TODO カードを裏返す
+  // TODO カードを回転する
   return (
     <View style={styles.container}>
       {movableCards(ownCards)}
