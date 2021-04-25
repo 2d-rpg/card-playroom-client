@@ -1,87 +1,103 @@
-import React, { ReactElement, useRef } from "react";
-import { Animated, PanResponder } from "react-native";
-import Card from "./Card";
+import React, { ReactElement } from "react";
+import { Animated, View } from "react-native";
+import { Card } from "./Card";
+import {
+  TapGestureHandler,
+  PanGestureHandler,
+  State,
+  PanGestureHandlerStateChangeEvent,
+} from "react-native-gesture-handler";
+import { TapGestureHandlerStateChangeEvent } from "react-native-gesture-handler";
 
-interface ServerCard {
-  id: number;
-  face: string;
-  back: string;
-}
-
-export default function MovableCard(props: {
-  serverCard: ServerCard;
+export const MovableCard = (props: {
+  face: string | undefined;
+  back: string | undefined;
   width: number;
   height: number;
   endpoint: string;
-  websocket: WebSocket | null;
+  onCardRelease: () => void;
   position: Animated.ValueXY;
-  kind: string;
-  setPosition: React.Dispatch<React.SetStateAction<Animated.ValueXY>>;
-}): ReactElement {
-  const panResponder = useRef(
-    PanResponder.create({
-      onMoveShouldSetPanResponder: () => true,
-      onPanResponderGrant: () => {
-        // pan.x: Animated.value には_valueプロパティが見つからないため
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const panX = props.position.x as any;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const panY = props.position.y as any;
-        props.position.setOffset({
-          x: panX._value,
-          y: panY._value,
-        });
-      },
-      onPanResponderMove: Animated.event(
-        [null, { dx: props.position.x, dy: props.position.y }],
-        {
-          useNativeDriver: false,
-        }
-      ),
-      onPanResponderRelease: () => {
-        props.position.flattenOffset();
-        // ポジションをjsonとしてサーバに送信
-        if (
-          props.websocket != null &&
-          props.websocket.readyState == WebSocket.OPEN
-        ) {
-          props.websocket.send(
-            JSON.stringify({
-              kind: props.kind,
-              index: 0,
-              x: props.position.x,
-              y: props.position.y,
-            })
-          );
-        }
-      },
-    })
-  ).current;
-
-  const renderCard = () => {
-    const renderItem = (
-      <Card
-        facePath={props.serverCard.face}
-        backPath={props.serverCard.back}
-        height={props.height}
-        width={props.width}
-        endpoint={props.endpoint}
-      />
-    );
-    return renderItem;
+}): ReactElement => {
+  const animatedValueToNumber = (animatedValue: Animated.Value): number => {
+    const strValue = JSON.stringify(animatedValue);
+    return Number(strValue);
   };
-
-  return (
-    <Animated.View
-      style={{
-        transform: [
-          { translateX: props.position.x },
-          { translateY: props.position.y },
-        ],
-      }}
-      {...panResponder.panHandlers}
-    >
-      {renderCard()}
-    </Animated.View>
+  const doubleTapRef = React.createRef<TapGestureHandler>();
+  const onSingleTap = (event: TapGestureHandlerStateChangeEvent) => {
+    // console.log(`1: ${event.nativeEvent.state}`);
+    if (event.nativeEvent.state === State.ACTIVE) {
+      // console.log("single tap");
+    }
+  };
+  const onDoubleTap = (event: TapGestureHandlerStateChangeEvent) => {
+    // console.log(`2: ${event.nativeEvent.state}`);
+    if (event.nativeEvent.state === State.ACTIVE) {
+      console.log("double tap");
+    }
+  };
+  const onPanGestureEvent = Animated.event(
+    [
+      {
+        nativeEvent: {
+          translationX: props.position.x,
+          translationY: props.position.y,
+        },
+      },
+    ],
+    { useNativeDriver: false }
   );
-}
+  const onPanHandleStateChange = (event: PanGestureHandlerStateChangeEvent) => {
+    console.log(
+      `old: ${event.nativeEvent.oldState} new: ${event.nativeEvent.state}`
+    );
+    if (event.nativeEvent.state == State.BEGAN) {
+      props.position.x.setOffset(animatedValueToNumber(props.position.x));
+      props.position.x.setValue(0);
+      props.position.y.setOffset(animatedValueToNumber(props.position.y));
+      props.position.y.setValue(0);
+    }
+
+    if (event.nativeEvent.state == State.END) {
+      props.onCardRelease();
+    }
+  };
+  return (
+    <PanGestureHandler
+      onGestureEvent={onPanGestureEvent}
+      onHandlerStateChange={onPanHandleStateChange}
+    >
+      <Animated.View
+        style={{
+          transform: [
+            { translateX: props.position.x },
+            { translateY: props.position.y },
+          ],
+          position: "absolute",
+        }}
+      >
+        <TapGestureHandler
+          onHandlerStateChange={onSingleTap}
+          waitFor={doubleTapRef}
+        >
+          <TapGestureHandler
+            ref={doubleTapRef}
+            onHandlerStateChange={onDoubleTap}
+            numberOfTaps={2}
+          >
+            {/* TODO Viewがないとcrashする */}
+            {/* https://github.com/software-mansion/react-native-gesture-handler/issues/711 */}
+            <View>
+              <Card
+                facePath={props.face}
+                backPath={props.back}
+                height={props.height}
+                width={props.width}
+                endpoint={props.endpoint}
+              />
+            </View>
+          </TapGestureHandler>
+        </TapGestureHandler>
+      </Animated.View>
+    </PanGestureHandler>
+  );
+};
