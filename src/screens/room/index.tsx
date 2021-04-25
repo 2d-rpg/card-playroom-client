@@ -43,21 +43,8 @@ export default function RoomScreen({
   const { roomid, endpoint, cardIds } = route.params;
   const websocket = useRef<WebSocket | null>(null);
   const cardsQueryResult = useQuery<ServerCards>(GET_SERVER_CARDS);
-  const [ownCards, setOwnCards] = useState<CardInRoom[]>([]);
-  const refOwnCards = useValueRef(ownCards);
-  const [opponentCards, setOpponentCards] = useState<CardInRoom[]>([]);
-  const refOpponentCards = useValueRef(opponentCards);
-
-  const updateCardsArray = (
-    cardArray: CardInRoom[],
-    newCard: CardInRoom
-  ): void => {
-    const index = cardArray.findIndex((card) => card.index === newCard.index);
-    if (index !== -1) {
-      cardArray.splice(index, 1);
-      cardArray.push(newCard);
-    }
-  };
+  const [cards, setCards] = useState<CardInRoom[]>([]);
+  const refCards = useValueRef(cards);
 
   // カードをサーバーからロード
   useEffect(() => {
@@ -95,7 +82,7 @@ export default function RoomScreen({
               return unloadCard;
             }
           });
-          setOwnCards(ownCardsInRoom);
+          setCards(ownCardsInRoom);
 
           websocket.current = new WebSocket(`ws://${endpoint}/ws`);
           websocket.current.onopen = () => {
@@ -106,42 +93,38 @@ export default function RoomScreen({
           websocket.current.onmessage = (event) => {
             const wsMessage: WsMessage = JSON.parse(event.data);
             if (isEnterRoomMessage(wsMessage)) {
-              const cardsInfo: CardInRoom[] = refOwnCards.current.map(
-                (ownCard) => {
-                  const newPosition = new Animated.ValueXY({
-                    x: 0,
-                    y: cardHeight,
-                  });
-                  return {
-                    id: ownCard.id,
-                    face: ownCard.face,
-                    back: ownCard.back,
-                    index: ownCard.index,
-                    own: !ownCard.own,
-                    position: newPosition,
-                  };
-                }
-              );
+              const cardsInfo: CardInRoom[] = refCards.current.map((card) => {
+                const newPosition = new Animated.ValueXY({
+                  x: 0,
+                  y: cardHeight,
+                });
+                return {
+                  id: card.id,
+                  face: card.face,
+                  back: card.back,
+                  index: card.index,
+                  own: !card.own,
+                  position: newPosition,
+                };
+              });
               websocket.current?.send(
                 `/first-cards ${JSON.stringify(cardsInfo)}`
               );
             } else if (isSomeoneEnterRoomMessage(wsMessage)) {
-              const cardsInfo: CardInRoom[] = refOwnCards.current.map(
-                (ownCard) => {
-                  const newPosition = new Animated.ValueXY({
-                    x: 0,
-                    y: cardHeight,
-                  });
-                  return {
-                    id: ownCard.id,
-                    face: ownCard.face,
-                    back: ownCard.back,
-                    index: ownCard.index,
-                    own: !ownCard.own,
-                    position: newPosition,
-                  };
-                }
-              );
+              const cardsInfo: CardInRoom[] = refCards.current.map((card) => {
+                const newPosition = new Animated.ValueXY({
+                  x: 0,
+                  y: cardHeight,
+                });
+                return {
+                  id: card.id,
+                  face: card.face,
+                  back: card.back,
+                  index: card.index,
+                  own: !card.own,
+                  position: newPosition,
+                };
+              });
               websocket.current?.send(
                 `/first-cards ${JSON.stringify(cardsInfo)}`
               );
@@ -158,7 +141,7 @@ export default function RoomScreen({
                   };
                 }
               );
-              setOpponentCards(opponentCardsInfo);
+              setCards(refCards.current.concat(opponentCardsInfo));
             } else if (isCardsInfoMessage(wsMessage)) {
               const cardsInfo: CardInRoom[] = wsMessage.data.map((card) => {
                 return {
@@ -170,17 +153,18 @@ export default function RoomScreen({
                   position: new Animated.ValueXY(card.position),
                 };
               });
-              const newOwnCards = Array.from(refOwnCards.current);
-              const newOpponentCards = Array.from(refOpponentCards.current);
+              const newCards = Array.from(refCards.current);
               for (const cardInfo of cardsInfo) {
-                if (cardInfo.own) {
-                  updateCardsArray(newOwnCards, cardInfo);
-                } else {
-                  updateCardsArray(newOpponentCards, cardInfo);
+                const index = newCards.findIndex(
+                  (card) =>
+                    card.index === cardInfo.index && card.own === cardInfo.own
+                );
+                if (index !== -1) {
+                  newCards.splice(index, 1);
+                  newCards.push(cardInfo);
                 }
               }
-              setOwnCards(newOwnCards);
-              setOpponentCards(newOpponentCards);
+              setCards(newCards);
             }
           };
         }
@@ -193,17 +177,13 @@ export default function RoomScreen({
     };
   }, [cardsQueryResult]);
 
-  useEffect(() => {
-    console.log(`opponentCards${opponentCards}`);
-  }, [opponentCards]);
-
   const movableCards = (cards: CardInRoom[] | null) => {
     if (cards == null) {
       return <ActivityIndicator />;
     } else {
       const movableCardComponents = cards.map((card) => (
         <MovableCard
-          key={card.index}
+          key={card.own ? `own-${card.index}` : `opponent-${card.index}`}
           face={card.face}
           back={card.back}
           width={cardWidth}
@@ -241,12 +221,7 @@ export default function RoomScreen({
   // TODO カードをまとめて動かす
   // TODO カードを裏返す
   // TODO カードを回転する
-  return (
-    <View style={styles.container}>
-      {movableCards(ownCards)}
-      {movableCards(opponentCards)}
-    </View>
-  );
+  return <View style={styles.container}>{movableCards(cards)}</View>;
 }
 
 type RoomScreenRouteProp = RouteProp<RootStackParamList, "Room">;
