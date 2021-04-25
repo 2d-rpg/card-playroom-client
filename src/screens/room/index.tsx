@@ -209,6 +209,16 @@ export default function RoomScreen({
               ];
               websocket.current.send(`/cards ${JSON.stringify(cardsInfo)}`);
             }
+            // TODO カード移動時にカードを最前面に
+            // const newCards = Array.from(refCards.current);
+            // const index = newCards.findIndex(
+            //   (card) => card.index === card.index && card.own === card.own
+            // );
+            // if (index !== -1) {
+            //   newCards.splice(index, 1);
+            //   newCards.push(card);
+            // }
+            // setCards(newCards);
           }}
           position={card.position}
         />

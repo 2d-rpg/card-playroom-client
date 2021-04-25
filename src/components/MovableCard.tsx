@@ -47,6 +47,9 @@ export const MovableCard = (props: {
     { useNativeDriver: false }
   );
   const onPanHandleStateChange = (event: PanGestureHandlerStateChangeEvent) => {
+    console.log(
+      `old: ${event.nativeEvent.oldState} new: ${event.nativeEvent.state}`
+    );
     if (event.nativeEvent.state == State.BEGAN) {
       props.position.x.setOffset(animatedValueToNumber(props.position.x));
       props.position.x.setValue(0);
