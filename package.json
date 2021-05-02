@@ -6,7 +6,40 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "eject": "expo eject",
-    "lint": "eslint src"
+    "lint": "eslint src",
+    "test": "jest"
+  },
+  "jest": {
+    "verbose": true,
+    "collectCoverage": true,
+    "collectCoverageFrom": [
+      "**/*.{js,jsx}",
+      "!**/coverage/**",
+      "!**/node_modules/**",
+      "!**/babel.config.js",
+      "!**/jest.setup.js"
+    ],
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js"
+    ],
+    "transform": {
+      "^.+\\.ts$": "ts-jest"
+    },
+    "globals": {
+      "ts-jest": {
+        "tsconfig": "tsconfig.json"
+      }
+    },
+    "preset": "jest-expo",
+    "transformIgnorePatterns": [
+      "node_modules/(?!(jest-)?react-native|react-clone-referenced-element|@react-native-community|expo(nent)?|@expo(nent)?/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|@sentry/.*|typeorm/*|@react-native-*)"
+    ],
+    "setupFiles": [
+      "./jestSetupFile.js",
+      "./node_modules/react-native-gesture-handler/jestSetup.js"
+    ]
   },
   "dependencies": {
     "@apollo/client": "^3.2.5",
@@ -21,6 +54,7 @@
     "expo-status-bar": "~1.0.3",
     "formik": "^2.2.5",
     "graphql": "^15.4.0",
+    "jest": "^26.0.0",
     "react": "16.13.1",
     "react-dom": "16.13.1",
     "react-native": "https://github.com/expo/react-native/archive/sdk-40.0.1.tar.gz",
@@ -38,20 +72,28 @@
     "yup": "^0.29.3"
   },
   "devDependencies": {
+    "@babel/preset-react": "^7.13.13",
+    "@babel/preset-typescript": "^7.13.0",
+    "@types/jest": "^26.0.23",
     "@types/node": "^14.14.19",
     "@types/react": "~16.9.35",
     "@types/react-dom": "~16.9.8",
     "@types/react-native": "~0.63.2",
     "@types/react-native-dialog": "^5.6.2",
+    "@types/react-test-renderer": "^17.0.1",
     "@types/yup": "^0.29.11",
     "@typescript-eslint/eslint-plugin": "^4.3.0",
     "@typescript-eslint/parser": "^4.3.0",
+    "babel-preset-expo": "^8.3.0",
     "eslint": "^7.10.0",
     "eslint-config-prettier": "^6.12.0",
     "eslint-plugin-prettier": "^3.1.4",
     "eslint-plugin-react": "^7.21.3",
     "eslint-plugin-react-hooks": "^4.1.2",
+    "jest-expo": "^41.0.0",
     "prettier": "^2.1.2",
+    "react-test-renderer": "16.14.0",
+    "ts-jest": "^26.5.5",
     "typescript": "~4.0.0"
   },
   "private": true
