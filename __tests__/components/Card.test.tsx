@@ -1,5 +1,5 @@
 import React from "react";
-import renderer from "react-test-renderer";
+import { render } from "@testing-library/react-native";
 
 import { Card } from "../../src/components/Card";
 
@@ -14,18 +14,16 @@ const cardComponent = (
 );
 
 describe("<Card />", () => {
+  const rendered = render(cardComponent).toJSON();
   it("should match snapshot", () => {
-    const rendered = renderer.create(cardComponent).toJSON();
     expect(rendered).toMatchSnapshot();
   });
 
   it("should be Image type", () => {
-    const rendered = renderer.create(cardComponent).toJSON();
     expect(rendered?.type).toEqual("Image");
   });
 
   it("should be geven width, height", () => {
-    const rendered = renderer.create(cardComponent).toJSON();
     expect(rendered?.props?.style).toEqual({ width: 12, height: 36 });
   });
 });

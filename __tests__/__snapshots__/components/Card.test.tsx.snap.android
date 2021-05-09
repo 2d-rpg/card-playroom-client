@@ -1,0 +1,14 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`<Card /> should match snapshot 1`] = `
+<Image
+  resizeMode="contain"
+  source={1}
+  style={
+    Object {
+      "height": 36,
+      "width": 12,
+    }
+  }
+/>
+`;
