@@ -3,7 +3,7 @@ name: NodeJS
 on: pull_request
 
 jobs:
-  build:
+  check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -26,3 +26,5 @@ jobs:
         run: yarn install --frozen-lockfile
       - name: Lint
         run: npm run lint
+      - name: Test
+        run: yarn test
