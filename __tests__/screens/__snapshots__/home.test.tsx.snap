@@ -79,5 +79,3 @@ exports[`<HomeScreen /> should match snapshot 1`] = `
   </View>
 </View>
 `;
-
-exports[`<HomeScreen /> should match snapshot 2`] = `null`;
