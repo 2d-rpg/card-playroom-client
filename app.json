@@ -13,15 +13,16 @@
     "updates": {
       "fallbackToCacheTimeout": 0
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "description": "カードゲームシミュレーター"
+    "description": "カードゲームシミュレーター",
+    "android": {
+      "package": "net.banatech.card_playroom_client"
+    }
   }
 }
