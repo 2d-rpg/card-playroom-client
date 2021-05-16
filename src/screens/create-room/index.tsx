@@ -6,8 +6,6 @@ import { RouteProp } from "@react-navigation/native";
 import { RootStackParamList } from "../../../App";
 import { Formik } from "formik";
 import * as Yup from "yup";
-import Dialog from "react-native-dialog";
-import { Picker } from "@react-native-picker/picker";
 import { Deck } from "../../entities/Deck";
 import {
   createConnection,
@@ -15,6 +13,8 @@ import {
   getConnectionManager,
 } from "typeorm/browser";
 import { isCreateRoomMessage, WsMessage } from "../../utils/ws-message";
+import { useValueRef } from "../../utils/use-value-ref";
+import { EnterRoomConfirmDialog } from "../../components/EnterRoomConfirmDialog";
 
 export default function CreateRoomScreen({
   route,
@@ -35,6 +35,7 @@ export default function CreateRoomScreen({
   );
   const [localDecks, setLocalDecks] = useState<Deck[]>([]);
   const [localDeckCardIds, setLocalDeckCardIds] = useState<number[]>([]);
+  const refLocalDeckCardIds = useValueRef(localDeckCardIds);
 
   useEffect(() => {
     // websocketの初期化
@@ -46,7 +47,7 @@ export default function CreateRoomScreen({
         navigation.navigate("Room", {
           roomid: json.data.id,
           endpoint: endpoint,
-          cardIds: localDeckCardIds,
+          cardIds: refLocalDeckCardIds.current,
         });
       } else {
         // TODO ルームに入ったら切断されるようにする
@@ -80,7 +81,7 @@ export default function CreateRoomScreen({
   }, []);
 
   // TODO ボイラープレートを避ける
-  const onPickerValueChanged = async (itemValue: React.ReactText) => {
+  const onPickerValueChanged = (itemValue: React.ReactText) => {
     const selectedDeckId = parseInt(itemValue.toString());
     // 2回呼ばれる対策
     if (selectedDeckId === localDeckId) {
@@ -110,62 +111,14 @@ export default function CreateRoomScreen({
     }
   };
 
-  // TODO ボイラープレートを避ける
-  const deckPicker = (
-    selectedId: number | string | undefined,
-    onPickerValueChanged: (
-      itemValue: React.ReactText,
-      itemIndex: number
-    ) => void,
-    pickerItems: Deck[]
-  ) => {
-    return (
-      <Picker
-        selectedValue={selectedId}
-        style={styles.picker}
-        onValueChange={onPickerValueChanged}
-      >
-        {pickerItems.map((pickerItem) => {
-          return (
-            <Picker.Item
-              key={pickerItem.id}
-              label={pickerItem.name}
-              value={pickerItem.id}
-            />
-          );
-        })}
-      </Picker>
-    );
-  };
-
-  // TODO ボイラープレートを避ける
-  const roomEnterConfirmDialog = () => {
-    return (
-      <Dialog.Container visible={isVisibleRoomEnterConfirmDialog}>
-        <Dialog.Title>デッキ選択</Dialog.Title>
-        {deckPicker(localDeckId, onPickerValueChanged, localDecks)}
-        <Dialog.Button
-          label="キャンセル"
-          onPress={() => setIsVisibleRoomEnterConfirmDialog(false)}
-        />
-        <Dialog.Button
-          label="入室"
-          onPress={() => {
-            if (websocket.current != null) {
-              websocket.current.send(`/create ${roomName}`);
-            }
-          }}
-        />
-      </Dialog.Container>
-    );
-  };
-
   const schema = Yup.object().shape({
     name: Yup.string()
       .min(3, "3文字以上で入力してください")
       .max(20, "20文字以内で入力してください")
       .required("ルーム名を入力してください"),
   });
+  // TODO Formik は遅いのでReact Hook Formを使う
+  // TODO デッキがなかったら部屋を作れないようにする
   return (
     <View style={styles.container}>
       <Formik
@@ -209,7 +162,18 @@ export default function CreateRoomScreen({
           </>
         )}
       </Formik>
-      {roomEnterConfirmDialog()}
+      <EnterRoomConfirmDialog
+        visible={isVisibleRoomEnterConfirmDialog}
+        selectedDeckId={localDeckId}
+        onPickerValueChanged={onPickerValueChanged}
+        decks={localDecks}
+        onPressCancelButton={() => setIsVisibleRoomEnterConfirmDialog(false)}
+        onPressEnterButton={() => {
+          if (websocket.current != null) {
+            websocket.current.send(`/create ${roomName}`);
+          }
+        }}
+      />
     </View>
   );
 }
@@ -228,5 +192,4 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   button: { margin: 10 },
-  picker: { width: 200 },
 });

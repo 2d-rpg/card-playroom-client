@@ -1,7 +1,6 @@
 import React, { ReactElement, useState, useEffect } from "react";
 import { ActivityIndicator, StyleSheet, View, FlatList } from "react-native";
-import Card from "../../components/Card";
-import { Picker } from "@react-native-picker/picker";
+import { Card } from "../../components/Card";
 import GestureRecognizer from "react-native-swipe-gestures";
 import {
   createConnection,
@@ -17,16 +16,8 @@ import { Dimensions } from "react-native";
 import { FloatingAction } from "react-native-floating-action";
 import { Icon, Text } from "react-native-elements";
 import { DEFAULT_ENDPOINT } from "../home";
-
-interface ServerCard {
-  id: number;
-  face: string;
-  back: string;
-}
-
-interface ServerCards {
-  cards: ServerCard[];
-}
+import { DeckPicker } from "../../components/DeckPicker";
+import { ServerCard, ServerCards } from "../../utils/server-card-interface";
 
 const GET_SERVER_CARDS = gql`
   query {
@@ -63,7 +54,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  picker: { width: 200 },
   flatList: {
     height: flatListHeight,
     width: Dimensions.get("window").width,
@@ -363,35 +353,6 @@ export default function EditDeckScreen(): ReactElement {
       }
     };
 
-    // ローカル/サーバー のデッキ選択のためのセレクトボックス
-    const deckPicker = (
-      selectedId: number | string | undefined,
-      onPickerValueChanged: (
-        itemValue: React.ReactText,
-        itemIndex: number
-      ) => void,
-      pickerItems: Deck[]
-    ) => {
-      return (
-        <Picker
-          selectedValue={selectedId}
-          style={styles.picker}
-          onValueChange={onPickerValueChanged}
-        >
-          <Picker.Item key="none" label="選択なし" value="none" />
-          {pickerItems.map((pickerItem) => {
-            return (
-              <Picker.Item
-                key={pickerItem.id}
-                label={pickerItem.name}
-                value={pickerItem.id}
-              />
-            );
-          })}
-        </Picker>
-      );
-    };
-
     // ローカル/サーバー のカードをリスト表示
     const deckFlatList = (
       selectedId: number | string | undefined,
@@ -605,10 +566,20 @@ export default function EditDeckScreen(): ReactElement {
     return (
       <View style={styles.container}>
         <Text>サーバーのデッキ</Text>
-        {deckPicker(serverDeckId, onServerDeckPickerValueChanged, serverDecks)}
+        <DeckPicker
+          selectedId={serverDeckId}
+          onValueChanged={onServerDeckPickerValueChanged}
+          items={serverDecks}
+          width={200}
+        />
         {deckFlatList(serverDeckId, serverDeckCardIds, renderServerDeckItem)}
         <Text>ローカルのデッキ</Text>
-        {deckPicker(localDeckId, onLocalDeckPickerValueChanged, localDecks)}
+        <DeckPicker
+          selectedId={localDeckId}
+          onValueChanged={onLocalDeckPickerValueChanged}
+          items={localDecks}
+          width={200}
+        />
         {deckFlatList(localDeckId, localDeckCardIds, renderLocalDeckItem)}
         <FloatingAction
           actions={floadtingActions}
