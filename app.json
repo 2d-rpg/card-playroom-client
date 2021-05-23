@@ -23,7 +23,8 @@
     "description": "カードゲームシミュレーター",
     "android": {
       "package": "net.banatech.card_playroom_client",
-      "versionCode": 1
+      "versionCode": 1,
+      "permissions": []
     }
   }
 }
