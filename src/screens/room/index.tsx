@@ -87,7 +87,6 @@ export default function RoomScreen({
           websocket.current = new WebSocket(`ws://${endpoint}/ws`);
           websocket.current.onopen = () => {
             // ルーム入室
-            console.log("websocket opened!");
             websocket.current?.send(`/join ${roomid}`);
           };
           websocket.current.onmessage = (event) => {
@@ -190,9 +189,7 @@ export default function RoomScreen({
           height={cardHeight}
           endpoint={endpoint}
           onCardRelease={() => {
-            console.log(card.position);
             card.position.flattenOffset();
-            // ポジションをjsonとしてサーバに送信
             if (
               websocket.current != null &&
               websocket.current.readyState == WebSocket.OPEN
@@ -210,15 +207,6 @@ export default function RoomScreen({
               websocket.current.send(`/cards ${JSON.stringify(cardsInfo)}`);
             }
             // TODO カード移動時にカードを最前面に
-            // const newCards = Array.from(refCards.current);
-            // const index = newCards.findIndex(
-            //   (card) => card.index === card.index && card.own === card.own
-            // );
-            // if (index !== -1) {
-            //   newCards.splice(index, 1);
-            //   newCards.push(card);
-            // }
-            // setCards(newCards);
           }}
           position={card.position}
         />
