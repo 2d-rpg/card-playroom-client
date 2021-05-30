@@ -1,4 +1,4 @@
-FROM node:14.15.4-slim
+FROM node:14.17.0-buster-slim
 
 RUN apt update \
     && apt install -y --no-install-recommends \

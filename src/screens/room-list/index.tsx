@@ -73,13 +73,11 @@ export default function RoomListScreen({
         // websocketの初期化
         websocket.current = new WebSocket(`ws://${endpoint}/ws`);
         websocket.current.onopen = () => {
-          console.log("opened");
           if (websocket.current != null) {
             websocket.current.send("/list");
           }
         };
         websocket.current.onmessage = (event) => {
-          console.log(event.data);
           const json: WsMessage = JSON.parse(event.data);
           if (isGetRoomListMessage(json)) {
             setRoomListData(json.data);
@@ -228,7 +226,6 @@ export default function RoomListScreen({
         />
       )}
       <FloatingAction
-        // overrideWithAction={true}
         actions={floadtingActions}
         color={"#03A9F4"}
         onPressItem={onPressFloadtingActionIcons}
