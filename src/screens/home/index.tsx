@@ -1,52 +1,49 @@
 import { StatusBar } from "expo-status-bar";
-import React, { ReactElement } from "react";
-import { StyleSheet, View, Text, Button } from "react-native";
-import { StackNavigationProp } from "@react-navigation/stack";
-import { RootStackParamList } from "../../../App";
+import React, { ReactElement, useState, useEffect } from "react";
+import { StyleSheet, View } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Input } from "react-native-elements";
 
-export default function HomeScreen({
-  navigation,
-}: {
-  navigation: HomeScreenNavigationProp;
-}): ReactElement {
+export const DEFAULT_ENDPOINT = "127.0.0.1";
+export default function HomeScreen(): ReactElement {
+  const [endpoint, setEndpoint] = useState(DEFAULT_ENDPOINT);
+  useEffect(() => {
+    (async () => {
+      try {
+        const endpointFromPreferences = await AsyncStorage.getItem("@endpoint");
+        if (endpointFromPreferences != null) {
+          setEndpoint(endpointFromPreferences);
+        }
+      } catch (error) {
+        // 設定読み込みエラー
+        console.log(error);
+      }
+    })();
+  }, []);
+  useEffect(() => {
+    (async () => {
+      try {
+        await AsyncStorage.setItem("@endpoint", endpoint);
+      } catch (error) {
+        // 設定保存エラー
+        console.log(error);
+      }
+    })();
+  }, [endpoint]);
+  // TODO サーバーと接続できているか確認するボタンの実装
+  // TODO ユーザーに関する情報（ユーザーアイコン，ユーザーネーム）の実装
   return (
     <View style={styles.container}>
-      <Text>Home Screen</Text>
-      <View style={styles.buttons}>
-        <View style={styles.button}>
-          <Button
-            title="ルーム作成"
-            onPress={() => navigation.navigate("Room")}
-          />
-        </View>
-        <View style={styles.button}>
-          <Button
-            title="ルーム参加"
-            onPress={() => navigation.navigate("RoomList")}
-          />
-        </View>
-      </View>
-      <View style={styles.buttons}>
-        <View style={styles.button}>
-          <Button
-            title="デッキ編集"
-            onPress={() => navigation.navigate("EditDeck")}
-          />
-        </View>
-        <View style={styles.button}>
-          <Button
-            title="設定"
-            onPress={() => navigation.navigate("Preferences")}
-          />
-        </View>
-      </View>
+      <Input
+        label="サーバーアドレス"
+        style={styles.input}
+        onChangeText={(input) => setEndpoint(input)}
+        value={endpoint}
+      />
       <StatusBar style="auto" />
     </View>
   );
 }
-
-type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, "Home">;
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -54,17 +51,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  buttons: {
-    flexDirection: "row",
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  button: {
-    flex: 0.5,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
   },
 });

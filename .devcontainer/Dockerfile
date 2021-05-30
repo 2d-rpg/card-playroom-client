@@ -1,4 +1,4 @@
-FROM node:12.18.4-slim
+FROM node:14.17.0-buster-slim
 
 RUN apt update \
     && apt install -y --no-install-recommends \
@@ -6,7 +6,7 @@ RUN apt update \
     git \
     ca-certificates \
     procps \
-    && npm install expo-cli --global \
+    && npm install --global expo-cli \
     && apt autoremove -y \
     && apt clean -y \
     && rm -rf /var/lib/apt/lists/* \
